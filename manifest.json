@@ -1,17 +1,109 @@
 {
-  "name": "MUGHIS BANK - ERP Mini",
+  "name": "MUGHIS BANK - Professional Financial Management",
   "short_name": "MUGHIS BANK",
-  "start_url": ".",
+  "description": "Aplikasi manajemen keuangan profesional untuk bisnis dengan fitur invoice, hutang, piutang, dan cloud sync",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0ea5e9",
   "orientation": "portrait-primary",
-  "icons": [
+  "theme_color": "#2c3e50",
+  "background_color": "#ffffff",
+  "categories": ["finance", "business", "productivity"],
+  "screenshots": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230ea5e9' width='192' height='192'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='central'>MB</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232c3e50' width='192' height='192'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='60' font-family='Arial'>MB</text></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%232c3e50' width='512' height='512'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='200' font-family='Arial'>MB</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232c3e50' width='192' height='192' rx='45'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='100' font-family='Arial' font-weight='bold'>MB</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%232c3e50' width='512' height='512' rx='100'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='250' font-family='Arial' font-weight='bold'>MB</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Buka dashboard utama",
+      "url": "/?page=dashboard",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%232c3e50' width='96' height='96' rx='20'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='50' font-family='Arial'>📊</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "short_name": "Wallet",
+      "description": "Kelola dompet Anda",
+      "url": "/?page=wallet",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%232c3e50' width='96' height='96' rx='20'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='50' font-family='Arial'>💰</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Invoice",
+      "short_name": "Invoice",
+      "description": "Buat invoice baru",
+      "url": "/?page=invoice",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%232c3e50' width='96' height='96' rx='20'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='50' font-family='Arial'>📄</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Transaction",
+      "short_name": "Transaction",
+      "description": "Catat transaksi",
+      "url": "/?page=transaction",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%232c3e50' width='96' height='96' rx='20'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-size='50' font-family='Arial'>📝</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/?action=share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "launch_handler": {
+    "client_mode": ["navigate-new", "auto"]
+  }
 }
