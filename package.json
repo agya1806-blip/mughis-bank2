@@ -1,0 +1,33 @@
+{
+  "name": "mughis-bank",
+  "version": "2.0.0",
+  "description": "ERP Mini System untuk Manajemen Keuangan Usaha",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server",
+    "dev": "http-server -p 3000 -c-1",
+    "build": "echo 'No build needed for static site'",
+    "deploy": "vercel"
+  },
+  "keywords": [
+    "bank",
+    "erp",
+    "invoice",
+    "keuangan",
+    "accounting"
+  ],
+  "author": "Mughis Group",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "vercel": "^28.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/mughis-bank.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/mughis-bank/issues"
+  },
+  "homepage": "https://mughisbank.vercel.app"
+}
