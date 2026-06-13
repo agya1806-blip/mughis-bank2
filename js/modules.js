@@ -1,481 +1,691 @@
-// Global Data Store
-let appData = {
-    settings: {
-        businessName: "Mughis Group",
-        whatsapp: "085217706587",
-        address: "Samalanga, Bireuen, Aceh",
-        currency: "IDR"
-    },
-    wallets: [],
-    transactions: [],
-    customers: [],
-    products: [],
-    invoices: [],
-    debts: [],
-    receivables: [],
-    lastSync: null
-};
+// ==================== TRANSACTION MODULE ====================
 
-// Utility Functions
-const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
-};
+function openTransactionModal() {
+    document.getElementById('transactionId').value = '';
+    document.getElementById('transactionType').value = currentTransactionType;
+    document.getElementById('transactionModalTitle').textContent = 'Tambah Transaksi';
+    document.getElementById('transactionDate').value = new Date().toISOString().split('T');
+    document.getElementById('transactionDesc').value = '';
+    document.getElementById('transactionAmount').value = '';
+    updateCategoryOptions();
+    openModal('transactionModal');
+}
 
-const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-};
-
-const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
-
-const saveData = () => {
-    localStorage.setItem('mughisBankData', JSON.stringify(appData));
-    updateDashboard();
-    showToast('Data tersimpan');
-};
-
-const loadData = () => {
-    const saved = localStorage.getItem('mughisData');
-    if (saved) {
-        appData = JSON.parse(saved);
-        updateDashboard();
-    }
-};
-
-// Dashboard Calculations
-const calculateDashboard = () => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    // Filter Transactions for Month
-    const monthTransactions = appData.transactions.filter(t => {
-        const d = new Date(t.date);
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    });
-
-    const directIncome = monthTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-    const directExpense = monthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-
-    // Invoice Totals
-    const invoiceIncome = appData.invoices.reduce((sum, inv) => sum + (inv.status === 'paid' ? inv.price : 0), 0);
-    const invoiceTotal = appData.invoices.reduce((sum, inv) => sum + inv.price, 0);
-    const invoicePaid = appData.invoices.filter(inv => inv.status === 'paid').length;
-    const invoiceUnpaid = appData.invoices.filter(inv => inv.status === 'unpaid').length;
-
-    // Modal Out (Category 'Modal')
-    const modalOut = appData.transactions.filter(t => t.type === 'expense' && t.category === 'Modal').reduce((sum, t) => sum + t.amount, 0);
-
-    // Net Profit Invoice (Income - Modal)
-    const netProfitInvoice = invoiceIncome - modalOut;
-
-    // Debt & Receivable
-    const totalDebt = appData.debts.reduce((sum, d) => sum + d.amount, 0);
-    const totalReceivable = appData.receivables.reduce((sum, r) => sum + r.amount, 0);
-
-    // Balance Logic:
-    // Start 0 + Direct Income - Direct Expense + Debt (Hutang masuk) - Receivable (Piutang keluar)
-    // Note: This is simplified. Real logic depends on how debts/receivables are settled.
-    // For this app: Debt increases balance (you got cash), Receivable decreases balance (you gave cash).
-    // But we also need to account for the fact that these are tracked separately.
-    // Let's assume Balance = Direct Income - Direct Expense + (Debt Amounts not yet paid back) - (Receivable Amounts not yet collected)
-    // Or simpler: Balance = Direct Income - Direct Expense + Total Debt - Total Receivable
-    
-    // Let's stick to the prompt: "Hutang menambah saldo bank; piutang mengurangi saldo bank"
-    // So Balance = (Sum of Income Transactions) - (Sum of Expense Transactions) + (Sum of Debts) - (Sum of Receivables)
-    // Wait, if I take a debt, I get money (balance +). If I give a receivable, I lose money (balance -).
-    // But if I pay back debt, balance -. If I collect receivable, balance +.
-    // The simplest UI logic: Balance = Total Cash In - Total Cash Out.
-    // Debt/Receivable are separate tracking.
-    // Let's calculate Balance as: Sum of all Income Transactions - Sum of all Expense Transactions.
-    // AND add/subtract Debt/Receivable as per prompt instruction for display purposes.
-    
-    // Re-reading prompt: "Hutang menambah saldo bank; piutang mengurangi saldo bank"
-    // This implies the balance displayed should include the net effect of debt/receivable.
-    // Let's calculate:
-    // Total Cash Flow = Sum(Income) - Sum(Expense)
-    // Net Balance = Total Cash Flow + Total Debt - Total Receivable
-    
-    const totalIncome = monthTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-    const totalExpense = monthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-    
-    // Let's use all-time for balance, but monthly for stats
-    const allIncome = appData.transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-    const allExpense = appData.transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-    
-    const balance = (allIncome - allExpense) + totalDebt - totalReceivable;
-
-    // Update DOM
-    document.getElementById('totalBalance').textContent = formatCurrency(balance);
-    document.getElementById('dashDirectIncome').textContent = formatCurrency(directIncome);
-    document.getElementById('dashInvoiceIncome').textContent = formatCurrency(invoiceIncome);
-    document.getElementById('dashExpense').textContent = formatCurrency(directExpense);
-    document.getElementById('dashModalOut').textContent = formatCurrency(modalOut);
-    document.getElementById('dashNetProfit').textContent = formatCurrency(netProfitInvoice);
-    document.getElementById('dashTotalDebt').textContent = formatCurrency(totalDebt);
-    document.getElementById('dashTotalReceivable').textContent = formatCurrency(totalReceivable);
-    
-    document.getElementById('monthIncome').textContent = formatCurrency(directIncome);
-    document.getElementById('monthExpense').textContent = formatCurrency(directExpense);
-    document.getElementById('monthProfit').textContent = formatCurrency(directIncome - directExpense);
-    
-    document.getElementById('dashTotalInvoice').textContent = formatCurrency(invoiceTotal);
-    document.getElementById('invoicePaid').textContent = invoicePaid;
-    document.getElementById('invoiceUnpaid').textContent = invoiceUnpaid;
-
-    // Recent Activity
-    renderRecentActivity();
-    
-    // Render Chart
-    renderFinanceChart();
-};
-
-const renderRecentActivity = () => {
-    const list = document.getElementById('recentActivity');
-    if (!list) return;
-    list.innerHTML = '';
-    
-    const allItems = [...appData.transactions, ...appData.invoices.map(i => ({...i, type: 'invoice'}))].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
-    
-    allItems.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        let icon = '💰';
-        let text = item.desc || 'Transaksi';
-        let amount = '';
-        let color = '';
-        
-        if (item.type === 'income') { icon = '📥'; amount = '+' + formatCurrency(item.amount); color = 'var(--success)'; }
-        else if (item.type === 'expense') { icon = '📤'; amount = '-' + formatCurrency(item.amount); color = 'var(--danger)'; }
-        else if (item.type === 'invoice') { 
-            icon = '📄'; 
-            text = item.customerName || 'Invoice';
-            amount = item.status === 'paid' ? formatCurrency(item.price) : formatCurrency(item.price) + ' (Belum Lunas)';
-            color = item.status === 'paid' ? 'var(--success)' : 'var(--warning)';
-        }
-        
-        div.innerHTML = `
-            <div class="list-item-header">
-                <span class="list-item-icon">${icon}</span>
-                <div class="list-item-info">
-                    <div class="list-item-title">${text}</div>
-                    <div class="list-item-subtitle">${formatDate(item.date)}</div>
-                </div>
-            </div>
-            <div class="list-item-amount" style="color:${color}">${amount}</div>
-        `;
-        list.appendChild(div);
-    });
-};
-
-const renderFinanceChart = () => {
-    const chart = document.getElementById('financeChart');
-    if (!chart) return;
-    
-    const days = 7;
-    const data = [];
-    const today = new Date();
-    
-    for (let i = days - 1; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        const dateStr = d.toISOString().split('T');
-        
-        const income = appData.transactions.filter(t => t.type === 'income' && t.date === dateStr).reduce((sum, t) => sum + t.amount, 0);
-        const expense = appData.transactions.filter(t => t.type === 'expense' && t.date === dateStr).reduce((sum, t) => sum + t.amount, 0);
-        
-        data.push({ date: dateStr, income, expense, day: d.getDate() });
-    }
-    
-    const maxVal = Math.max(...data.flatMap(d => [d.income, d.expense]), 100000);
-    
-    chart.innerHTML = '';
-    data.forEach(d => {
-        const container = document.createElement('div');
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
-        container.style.alignItems = 'center';
-        container.style.flex = 1;
-        
-        const barGroup = document.createElement('div');
-        barGroup.style.display = 'flex';
-        barGroup.style.gap = '4px';
-        barGroup.style.height = '100%';
-        barGroup.style.alignItems = 'flex-end';
-        
-        const incBar = document.createElement('div');
-        incBar.className = 'chart-bar';
-        incBar.style.height = `${(d.income / maxVal) * 100}%`;
-        incBar.style.background = 'var(--success)';
-        incBar.innerHTML = `<div class="chart-bar-value">${formatCurrency(d.income)}</div>`;
-        
-        const expBar = document.createElement('div');
-        expBar.className = 'chart-bar';
-        expBar.style.height = `${(d.expense / maxVal) * 100}%`;
-        expBar.style.background = 'var(--danger)';
-        expBar.innerHTML = `<div class="chart-bar-value">${formatCurrency(d.expense)}</div>`;
-        
-        barGroup.appendChild(incBar);
-        barGroup.appendChild(expBar);
-        
-        const label = document.createElement('div');
-        label.className = 'chart-bar-label';
-        label.textContent = d.day;
-        
-        container.appendChild(barGroup);
-        container.appendChild(label);
-        chart.appendChild(container);
-    });
-};
-
-// Sync Functions (Cloud)
-const syncToCloud = () => {
-    const jsonStr = JSON.stringify(appData);
-    const encoded = btoa(jsonStr);
-    
-    // Using JSONBin for simple demo sync (No API key needed for demo, but in real app you need one)
-    // For this demo, we'll just show the code to copy
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.top = '50%';
-    container.style.left = '50%';
-    container.style.transform = 'translate(-50%, -50%)';
-    container.style.background = 'white';
-    container.style.padding = '20px';
-    container.style.borderRadius = '12px';
-    container.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
-    container.style.zIndex = '2000';
-    container.innerHTML = `
-        <h3>Sinkronisasi Berhasil</h3>
-        <p>Kode Sinkronisasi:</p>
-        <input type="text" value="${encoded}" readonly style="width:100%; padding:8px; margin:10px 0; border:1px solid #ddd; border-radius:4px">
-        <p>Salin kode ini dan masukkan di perangkat lain.</p>
-        <button onclick="this.parentElement.parentElement.remove()" style="width:100%; padding:8px; margin-top:10px; background:var(--primary); color:white; border:none; border-radius:4px">Tutup</button>
-    `;
-    document.body.appendChild(container);
-};
-
-const loadFromCloud = () => {
-    const code = prompt("Masukkan Kode Sinkronisasi:");
-    if (!code) return;
-    
-    try {
-        const decoded = atob(code);
-        const newData = JSON.parse(decoded);
-        
-        if (confirm(`Data akan ditimpa dengan data dari kode ini. Lanjutkan?`)) {
-            appData = newData;
-            saveData();
-            location.reload();
-        }
-    } catch (e) {
-        alert("Kode tidak valid!");
-    }
-};
-
-// Export/Import
-const exportData = () => {
-    const dataStr = JSON.stringify(appData, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `mughis_bank_backup_${new Date().toISOString().split('T')}.json`;
-    a.click();
-};
-
-const importData = (input) => {
-    const file = input.files;
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            appData = JSON.parse(e.target.result);
-            saveData();
-            location.reload();
-        } catch (err) {
-            alert('File tidak valid');
-        }
-    };
-    reader.readAsText(file);
-};
-
-// Settings
-const saveSettings = () => {
-    appData.settings.businessName = document.getElementById('settingBusinessName').value;
-    appData.settings.whatsapp = document.getElementById('settingWhatsApp').value;
-    appData.settings.address = document.getElementById('settingAddress').value;
-    saveData();
-};
-
-const toggleTheme = () => {
-    const html = document.documentElement;
-    const isDark = html.getAttribute('data-theme') === 'dark';
-    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    localStorage.setItem('theme', isDark ? 'light' : 'dark');
-};
-
-// Toast Notification
-const showToast = (msg) => {
-    const toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 24px;border-radius:8px;z-index:3000;animation:fadeIn 0.3s;';
-    toast.textContent = msg;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-};
-
-// Navigation
-const showPage = (pageId) => {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    
-    const page = document.getElementById(`page-${pageId}`);
-    if (page) page.classList.add('active');
-    
-    // Update nav
-    const navMap = { 'dashboard':0, 'wallet':1, 'invoice':2, 'finance':3, 'reports':4 };
-    if (navMap[pageId] !== undefined) {
-        document.querySelectorAll('.nav-item')[navMap[pageId]].classList.add('active');
-    }
-    
-    if (pageId === 'dashboard') calculateDashboard();
-};
-
-// Modal Management
-const openModal = (id) => document.getElementById(id).classList.add('active');
-const closeModal = (id) => document.getElementById(id).classList.remove('active');
-
-// Transaction Logic
-let currentTransType = 'income';
-const setTransactionType = (type) => {
-    currentTransType = type;
+function setTransactionType(type) {
+    currentTransactionType = type;
     document.getElementById('transactionType').value = type;
-    document.querySelectorAll('#transactionModal .tab').forEach(t => {
-        t.classList.toggle('active', t.textContent.toLowerCase().includes(type === 'income' ? 'pemasukan' : 'pengeluaran'));
-    });
-};
+    document.querySelectorAll('#transactionModal .tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    updateCategoryOptions();
+}
 
-const saveTransaction = () => {
+function updateCategoryOptions() {
+    const type = document.getElementById('transactionType').value;
+    const cats = type === 'income' ? incomeCategories : expenseCategories;
+    document.getElementById('transactionCategory').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function saveTransaction() {
     const id = document.getElementById('transactionId').value;
-    const data = {
-        id: id || generateId(),
-        type: currentTransType,
-        date: document.getElementById('transactionDate').value || new Date().toISOString().split('T'),
-        category: document.getElementById('transactionCategory').value,
-        desc: document.getElementById('transactionDesc').value,
-        amount: parseFloat(document.getElementById('transactionAmount').value) || 0,
-        wallet: document.getElementById('transactionWallet').value
-    };
-    
-    if (id) {
-        const idx = appData.transactions.findIndex(t => t.id === id);
-        appData.transactions[idx] = data;
-    } else {
-        appData.transactions.push(data);
+    const type = document.getElementById('transactionType').value;
+    const date = document.getElementById('transactionDate').value;
+    const category = document.getElementById('transactionCategory').value;
+    const desc = document.getElementById('transactionDesc').value;
+    const amount = parseFloat(document.getElementById('transactionAmount').value) || 0;
+    const walletId = document.getElementById('transactionWallet').value;
+
+    if (!date || !desc || amount <= 0 || !walletId) {
+        alert('⚠️ Lengkapi semua field!');
+        return;
     }
-    
-    saveData();
+
+    const transactions = loadData(DB.transactions);
+    if (id) {
+        const idx = transactions.findIndex(t => t.id === id);
+        if (idx >= 0) transactions[idx] = { ...transactions[idx], date, category, description: desc, amount, walletId };
+    } else {
+        transactions.push({ id: generateId(), type, date, category, description: desc, amount, walletId, createdAt: Date.now() });
+    }
+
+    saveData(DB.transactions, transactions);
+    addActivity(`${type === 'income' ? '📥 Pemasukan' : '📤 Pengeluaran'} ${formatRupiah(amount)} - ${desc}`);
     closeModal('transactionModal');
-    renderFinance();
-};
+    recalculateAll();
+    renderAll();
+}
 
-// Wallet Logic
-const saveWallet = () => {
+function editTransaction(id) {
+    const t = loadData(DB.transactions).find(x => x.id === id);
+    if (!t) return;
+    document.getElementById('transactionId').value = t.id;
+    document.getElementById('transactionType').value = t.type;
+    document.getElementById('transactionDate').value = t.date;
+    document.getElementById('transactionDesc').value = t.description;
+    document.getElementById('transactionAmount').value = t.amount;
+    document.getElementById('transactionWallet').value = t.walletId;
+    updateCategoryOptions();
+    document.getElementById('transactionCategory').value = t.category;
+    document.getElementById('transactionModalTitle').textContent = 'Edit Transaksi';
+    openModal('transactionModal');
+}
+
+function deleteTransaction(id) {
+    if (!confirm('❌ Hapus transaksi ini?')) return;
+    const transactions = loadData(DB.transactions).filter(t => t.id !== id);
+    saveData(DB.transactions, transactions);
+    addActivity('🗑️ Menghapus transaksi');
+    recalculateAll();
+    renderAll();
+}
+
+// ==================== WALLET MODULE ====================
+
+function openWalletModal() {
+    document.getElementById('walletId').value = '';
+    document.getElementById('walletName').value = '';
+    document.getElementById('walletModalTitle').textContent = 'Tambah Dompet';
+    openModal('walletModal');
+}
+
+function saveWallet() {
     const id = document.getElementById('walletId').value;
-    const data = {
-        id: id || generateId(),
-        name: document.getElementById('walletName').value,
-        icon: document.getElementById('walletIcon').value
-    };
-    
-    if (id) {
-        const idx = appData.wallets.findIndex(w => w.id === id);
-        appData.wallets[idx] = data;
-    } else {
-        appData.wallets.push(data);
+    const name = document.getElementById('walletName').value;
+    const icon = document.getElementById('walletIcon').value;
+    if (!name) {
+        alert('⚠️ Nama dompet wajib diisi!');
+        return;
     }
-    
-    saveData();
+
+    const wallets = loadData(DB.wallets);
+    if (id) {
+        const idx = wallets.findIndex(w => w.id === id);
+        if (idx >= 0) wallets[idx] = { ...wallets[idx], name, icon };
+    } else {
+        wallets.push({ id: generateId(), name, icon, balance: 0, createdAt: Date.now() });
+    }
+    saveData(DB.wallets, wallets);
+    addActivity(id ? '✏️ Mengupdate dompet' : '➕ Menambah dompet baru');
     closeModal('walletModal');
-    renderWallets();
-};
+    recalculateAll();
+    renderAll();
+}
 
-// Debt & Receivable Logic
-const saveDebt = () => {
+function editWallet(id) {
+    const w = loadData(DB.wallets).find(x => x.id === id);
+    if (!w) return;
+    document.getElementById('walletId').value = w.id;
+    document.getElementById('walletName').value = w.name;
+    document.getElementById('walletIcon').value = w.icon;
+    document.getElementById('walletModalTitle').textContent = 'Edit Dompet';
+    openModal('walletModal');
+}
+
+function deleteWallet(id) {
+    const transactions = loadData(DB.transactions);
+    if (transactions.some(t => t.walletId === id)) {
+        alert('⚠️ Dompet ini memiliki transaksi. Hapus transaksi terlebih dahulu!');
+        return;
+    }
+    if (!confirm('❌ Hapus dompet ini?')) return;
+    saveData(DB.wallets, loadData(DB.wallets).filter(w => w.id !== id));
+    addActivity('🗑️ Menghapus dompet');
+    recalculateAll();
+    renderAll();
+}
+
+function openTransferModal(fromId) {
+    document.getElementById('transferFrom').value = fromId || '';
+    document.getElementById('transferTo').value = '';
+    document.getElementById('transferAmount').value = '';
+    document.getElementById('transferDesc').value = '';
+    openModal('transferModal');
+}
+
+function saveTransfer() {
+    const fromId = document.getElementById('transferFrom').value;
+    const toId = document.getElementById('transferTo').value;
+    const amount = parseFloat(document.getElementById('transferAmount').value) || 0;
+    const desc = document.getElementById('transferDesc').value;
+    if (!fromId || !toId || fromId === toId || amount <= 0) {
+        alert('⚠️ Pilih dompet asal dan tujuan yang berbeda dengan nominal valid!');
+        return;
+    }
+    const transactions = loadData(DB.transactions);
+    const ts = Date.now();
+    const fromName = document.querySelector(`#transferFrom option[value="${fromId}"]`)?.textContent || '';
+    const toName = document.querySelector(`#transferTo option[value="${toId}"]`)?.textContent || '';
+    
+    transactions.push({ id: generateId(), type: 'transfer_out', date: new Date().toISOString().split('T'), category: 'Transfer Keluar', description: `Transfer ke ${toName} - ${desc}`, amount, walletId: fromId, createdAt: ts });
+    transactions.push({ id: generateId(), type: 'transfer_in', date: new Date().toISOString().split('T'), category: 'Transfer Masuk', description: `Transfer dari ${fromName} - ${desc}`, amount, walletId: toId, createdAt: ts + 1 });
+    
+    saveData(DB.transactions, transactions);
+    addActivity(`↔️ Transfer ${formatRupiah(amount)} antar dompet`);
+    closeModal('transferModal');
+    recalculateAll();
+    renderAll();
+}
+
+// ==================== CUSTOMER MODULE ====================
+
+function openCustomerModal() {
+    document.getElementById('customerId').value = '';
+    document.getElementById('customerName').value = '';
+    document.getElementById('customerPhone').value = '';
+    document.getElementById('customerAddress').value = '';
+    document.getElementById('customerNote').value = '';
+    document.getElementById('customerModalTitle').textContent = 'Tambah Pelanggan';
+    openModal('customerModal');
+}
+
+function saveCustomer() {
+    const id = document.getElementById('customerId').value;
+    const name = document.getElementById('customerName').value;
+    const phone = document.getElementById('customerPhone').value;
+    const address = document.getElementById('customerAddress').value;
+    const note = document.getElementById('customerNote').value;
+    if (!name) {
+        alert('⚠️ Nama pelanggan wajib diisi!');
+        return;
+    }
+    
+    const customers = loadData(DB.customers);
+    if (id) {
+        const idx = customers.findIndex(c => c.id === id);
+        if (idx >= 0) customers[idx] = { ...customers[idx], name, phone, address, note };
+    } else {
+        customers.push({ id: generateId(), name, phone, address, note, createdAt: Date.now() });
+    }
+    saveData(DB.customers, customers);
+    addActivity(id ? '✏️ Mengupdate pelanggan' : '➕ Menambah pelanggan baru');
+    closeModal('customerModal');
+    renderAll();
+}
+
+function editCustomer(id) {
+    const c = loadData(DB.customers).find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('customerId').value = c.id;
+    document.getElementById('customerName').value = c.name;
+    document.getElementById('customerPhone').value = c.phone;
+    document.getElementById('customerAddress').value = c.address;
+    document.getElementById('customerNote').value = c.note || '';
+    document.getElementById('customerModalTitle').textContent = 'Edit Pelanggan';
+    openModal('customerModal');
+}
+
+function deleteCustomer(id) {
+    if (loadData(DB.invoices).some(i => i.customerId === id)) {
+        alert('⚠️ Pelanggan ini memiliki invoice. Hapus invoice terlebih dahulu!');
+        return;
+    }
+    if (!confirm('❌ Hapus pelanggan ini?')) return;
+    saveData(DB.customers, loadData(DB.customers).filter(c => c.id !== id));
+    addActivity('🗑️ Menghapus pelanggan');
+    renderAll();
+}
+
+// ==================== PRODUCT MODULE ====================
+
+function openProductModal() {
+    document.getElementById('productId').value = '';
+    document.getElementById('productName').value = '';
+    document.getElementById('productPrice').value = '';
+    document.getElementById('productModalTitle').textContent = 'Tambah Item';
+    openModal('productModal');
+}
+
+function saveProduct() {
+    const id = document.getElementById('productId').value;
+    const name = document.getElementById('productName').value;
+    const category = document.getElementById('productCategory').value;
+    const price = parseFloat(document.getElementById('productPrice').value) || 0;
+    const type = document.getElementById('productType').value;
+    if (!name) {
+        alert('⚠️ Nama item wajib diisi!');
+        return;
+    }
+    
+    const products = loadData(DB.products);
+    if (id) {
+        const idx = products.findIndex(p => p.id === id);
+        if (idx >= 0) products[idx] = { ...products[idx], name, category, price, type };
+    } else {
+        products.push({ id: generateId(), name, category, price, type, createdAt: Date.now() });
+    }
+    saveData(DB.products, products);
+    addActivity(id ? '✏️ Mengupdate produk/jasa' : '➕ Menambah produk/jasa baru');
+    closeModal('productModal');
+    renderAll();
+}
+
+function editProduct(id) {
+    const p = loadData(DB.products).find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('productId').value = p.id;
+    document.getElementById('productName').value = p.name;
+    document.getElementById('productCategory').value = p.category;
+    document.getElementById('productPrice').value = p.price;
+    document.getElementById('productModalTitle').textContent = 'Edit Item';
+    openModal('productModal');
+}
+
+function deleteProduct(id) {
+    if (!confirm('❌ Hapus item ini?')) return;
+    saveData(DB.products, loadData(DB.products).filter(p => p.id !== id));
+    addActivity('🗑️ Menghapus produk/jasa');
+    renderAll();
+}
+
+// ==================== DEBT MODULE ====================
+
+function openDebtModal() {
+    document.getElementById('debtId').value = '';
+    document.getElementById('debtName').value = '';
+    document.getElementById('debtPhone').value = '';
+    document.getElementById('debtAmount').value = '';
+    document.getElementById('debtDesc').value = '';
+    document.getElementById('debtDate').value = new Date().toISOString().split('T');
+    document.getElementById('debtDue').value = new Date().toISOString().split('T');
+    document.getElementById('debtModalTitle').textContent = 'Tambah Hutang';
+    openModal('debtModal');
+}
+
+function saveDebt() {
     const id = document.getElementById('debtId').value;
-    const data = {
-        id: id || generateId(),
-        name: document.getElementById('debtName').value,
-        phone: document.getElementById('debtPhone').value,
-        amount: parseFloat(document.getElementById('debtAmount').value) || 0,
-        desc: document.getElementById('debtDesc').value,
-        date: document.getElementById('debtDate').value || new Date().toISOString().split('T'),
-        due: document.getElementById('debtDue').value,
-        wallet: document.getElementById('debtWallet').value,
-        status: 'active'
-    };
+    const name = document.getElementById('debtName').value;
+    const phone = document.getElementById('debtPhone').value;
+    const amount = parseFloat(document.getElementById('debtAmount').value) || 0;
+    const desc = document.getElementById('debtDesc').value;
+    const date = document.getElementById('debtDate').value;
+    const dueDate = document.getElementById('debtDue').value;
+    const walletId = document.getElementById('debtWallet').value;
     
-    if (id) {
-        const idx = appData.debts.findIndex(d => d.id === id);
-        appData.debts[idx] = data;
-    } else {
-        appData.debts.push(data);
+    if (!name || amount <= 0) {
+        alert('⚠️ Nama dan nominal wajib diisi!');
+        return;
     }
     
-    saveData();
+    const debts = loadData(DB.debts);
+    if (id) {
+        const idx = debts.findIndex(d => d.id === id);
+        if (idx >= 0) debts[idx] = { ...debts[idx], name, phone, amount, description: desc, date, dueDate, walletId };
+    } else {
+        debts.push({ id: generateId(), name, phone, amount, description: desc, date, dueDate, walletId, status: 'Belum Lunas', createdAt: Date.now() });
+    }
+    saveData(DB.debts, debts);
+    addActivity(id ? '✏️ Mengupdate hutang' : '➕ Menambah hutang baru');
     closeModal('debtModal');
-    renderDebts();
-};
+    recalculateAll();
+    renderAll();
+}
 
-const saveReceivable = () => {
-    const id = document.getElementById('receivableId').value;
-    const data = {
-        id: id || generateId(),
-        name: document.getElementById('receivableName').value,
-        phone: document.getElementById('receivablePhone').value,
-        amount: parseFloat(document.getElementById('receivableAmount').value) || 0,
-        desc: document.getElementById('receivableDesc').value,
-        date: document.getElementById('receivableDate').value || new Date().toISOString().split('T'),
-        due: document.getElementById('receivableDue').value,
-        wallet: document.getElementById('receivableWallet').value,
-        status: 'active'
-    };
+function editDebt(id) {
+    const d = loadData(DB.debts).find(x => x.id === id);
+    if (!d) return;
+    document.getElementById('debtId').value = d.id;
+    document.getElementById('debtName').value = d.name;
+    document.getElementById('debtPhone').value = d.phone;
+    document.getElementById('debtAmount').value = d.amount;
+    document.getElementById('debtDesc').value = d.description || '';
+    document.getElementById('debtDate').value = d.date;
+    document.getElementById('debtDue').value = d.dueDate;
+    document.getElementById('debtWallet').value = d.walletId || '';
+    document.getElementById('debtModalTitle').textContent = 'Edit Hutang';
+    openModal('debtModal');
+}
+
+function deleteDebt(id) {
+    if (!confirm('❌ Hapus hutang ini?')) return;
+    saveData(DB.debts, loadData(DB.debts).filter(d => d.id !== id));
+    addActivity('🗑️ Menghapus hutang');
+    recalculateAll();
+    renderAll();
+}
+
+function payDebt(id) {
+    const debts = loadData(DB.debts);
+    const debt = debts.find(d => d.id === id);
+    if (!debt) return;
     
-    if (id) {
-        const idx = appData.receivables.findIndex(r => r.id === id);
-        appData.receivables[idx] = data;
-    } else {
-        appData.receivables.push(data);
+    const wallets = loadData(DB.wallets);
+    let walletHtml = '<select id="debtPaymentWallet" class="form-select">';
+    walletHtml += '<option value="">Pilih Dompet</option>';
+    wallets.forEach(w => {
+        walletHtml += `<option value="${w.id}" data-balance="${w.balance}">${w.icon} ${w.name} (${formatRupiah(w.balance)})</option>`;
+    });
+    walletHtml += '</select>';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">💰 Bayar Hutang</span>
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nama Hutang</label>
+                    <input type="text" class="form-input" value="${debt.name}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nominal</label>
+                    <input type="text" class="form-input" value="${formatRupiah(debt.amount)}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pilih Dompet Pembayaran</label>
+                    ${walletHtml}
+                </div>
+                <button class="btn btn-primary" onclick="confirmPayDebt('${id}', document.getElementById('debtPaymentWallet').value); this.closest('.modal-overlay').remove();">✅ Bayar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function confirmPayDebt(debtId, walletId) {
+    if (!walletId) {
+        alert('⚠️ Pilih dompet!');
+        return;
     }
     
-    saveData();
-    closeModal('receivableModal');
-    renderReceivables();
-};
+    const debts = loadData(DB.debts);
+    const debt = debts.find(d => d.id === debtId);
+    const wallets = loadData(DB.wallets);
+    const wallet = wallets.find(w => w.id === walletId);
+    
+    if (wallet.balance < debt.amount) {
+        alert('⚠️ Saldo dompet tidak mencukupi!');
+        return;
+    }
+    
+    const transactions = loadData(DB.transactions);
+    transactions.push({ 
+        id: generateId(), 
+        type: 'expense', 
+        date: new Date().toISOString().split('T'), 
+        category: 'Bayar Hutang', 
+        description: `Pembayaran hutang ke ${debt.name}`, 
+        amount: debt.amount, 
+        walletId: walletId, 
+        createdAt: Date.now() 
+    });
+    
+    debt.status = 'Lunas';
+    debt.paidAt = new Date().toISOString().split('T');
+    debt.paidWalletId = walletId;
+    
+    saveData(DB.transactions, transactions);
+    saveData(DB.debts, debts);
+    addActivity(`💳 Membayar hutang ${debt.name} ${formatRupiah(debt.amount)}`);
+    recalculateAll();
+    renderAll();
+}
 
-// Invoice Logic
-const openInvoiceModal = (type) => {
+// ==================== RECEIVABLE MODULE ====================
+
+function openReceivableModal() {
+    document.getElementById('receivableId').value = '';
+    document.getElementById('receivableName').value = '';
+    document.getElementById('receivablePhone').value = '';
+    document.getElementById('receivableAmount').value = '';
+    document.getElementById('receivableDesc').value = '';
+    document.getElementById('receivableDate').value = new Date().toISOString().split('T');
+    document.getElementById('receivableDue').value = new Date().toISOString().split('T');
+    document.getElementById('receivableModalTitle').textContent = 'Tambah Piutang';
+    openModal('receivableModal');
+}
+
+function saveReceivable() {
+    const id = document.getElementById('receivableId').value;
+    const name = document.getElementById('receivableName').value;
+    const phone = document.getElementById('receivablePhone').value;
+    const amount = parseFloat(document.getElementById('receivableAmount').value) || 0;
+    const desc = document.getElementById('receivableDesc').value;
+    const date = document.getElementById('receivableDate').value;
+    const dueDate = document.getElementById('receivableDue').value;
+    const walletId = document.getElementById('receivableWallet').value;
+    
+    if (!name || amount <= 0) {
+        alert('⚠️ Nama dan nominal wajib diisi!');
+        return;
+    }
+    
+    const receivables = loadData(DB.receivables);
+    if (id) {
+        const idx = receivables.findIndex(r => r.id === id);
+        if (idx >= 0) receivables[idx] = { ...receivables[idx], name, phone, amount, description: desc, date, dueDate, walletId };
+    } else {
+        receivables.push({ id: generateId(), name, phone, amount, description: desc, date, dueDate, walletId, status: 'Belum Lunas', createdAt: Date.now() });
+    }
+    saveData(DB.receivables, receivables);
+    addActivity(id ? '✏️ Mengupdate piutang' : '➕ Menambah piutang baru');
+    closeModal('receivableModal');
+    recalculateAll();
+    renderAll();
+}
+
+function editReceivable(id) {
+    const r = loadData(DB.receivables).find(x => x.id === id);
+    if (!r) return;
+    document.getElementById('receivableId').value = r.id;
+    document.getElementById('receivableName').value = r.name;
+    document.getElementById('receivablePhone').value = r.phone;
+    document.getElementById('receivableAmount').value = r.amount;
+    document.getElementById('receivableDesc').value = r.description || '';
+    document.getElementById('receivableDate').value = r.date;
+    document.getElementById('receivableDue').value = r.dueDate;
+    document.getElementById('receivableWallet').value = r.walletId || '';
+    document.getElementById('receivableModalTitle').textContent = 'Edit Piutang';
+    openModal('receivableModal');
+}
+
+function deleteReceivable(id) {
+    if (!confirm('❌ Hapus piutang ini?')) return;
+    saveData(DB.receivables, loadData(DB.receivables).filter(r => r.id !== id));
+    addActivity('🗑️ Menghapus piutang');
+    recalculateAll();
+    renderAll();
+}
+
+function payReceivable(id) {
+    const receivables = loadData(DB.receivables);
+    const rec = receivables.find(r => r.id === id);
+    if (!rec) return;
+    
+    const wallets = loadData(DB.wallets);
+    let walletHtml = '<select id="receivablePaymentWallet" class="form-select">';
+    walletHtml += '<option value="">Pilih Dompet</option>';
+    wallets.forEach(w => {
+        walletHtml += `<option value="${w.id}">${w.icon} ${w.name}</option>`;
+    });
+    walletHtml += '</select>';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">💰 Terima Piutang</span>
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nama Peminjam</label>
+                    <input type="text" class="form-input" value="${rec.name}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nominal</label>
+                    <input type="text" class="form-input" value="${formatRupiah(rec.amount)}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pilih Dompet Penerima</label>
+                    ${walletHtml}
+                </div>
+                <button class="btn btn-primary" onclick="confirmPayReceivable('${id}', document.getElementById('receivablePaymentWallet').value); this.closest('.modal-overlay').remove();">✅ Terima</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function confirmPayReceivable(receivableId, walletId) {
+    if (!walletId) {
+        alert('⚠️ Pilih dompet!');
+        return;
+    }
+    
+    const receivables = loadData(DB.receivables);
+    const rec = receivables.find(r => r.id === receivableId);
+    
+    const transactions = loadData(DB.transactions);
+    transactions.push({ 
+        id: generateId(), 
+        type: 'income', 
+        date: new Date().toISOString().split('T'), 
+        category: 'Pembayaran Piutang', 
+        description: `Penerimaan piutang dari ${rec.name}`, 
+        amount: rec.amount, 
+        walletId: walletId, 
+        createdAt: Date.now() 
+    });
+    
+    rec.status = 'Lunas';
+    rec.receivedAt = new Date().toISOString().split('T');
+    rec.receivedWalletId = walletId;
+    
+    saveData(DB.transactions, transactions);
+    saveData(DB.receivables, receivables);
+    addActivity(`💳 Menerima piutang ${rec.name} ${formatRupiah(rec.amount)}`);
+    recalculateAll();
+    renderAll();
+}
+
+// ==================== INVOICE MODULE ====================
+
+function openInvoiceTypeModal() {
+    openModal('invoiceTypeModal');
+}
+
+function openInvoiceModal(type) {
+    closeModal('invoiceTypeModal');
     document.getElementById('invoiceId').value = '';
     document.getElementById('invoiceType').value = type;
     document.getElementById('invoiceModalTitle').textContent = 'Invoice Baru';
+    document.getElementById('invoiceCustomer').value = '';
+    document.getElementById('invoiceCustomerName').value = '';
+    document.getElementById('invoiceCustomerPhone').value = '';
+    document.getElementById('invoiceCustomerAddress').value = '';
+    document.getElementById('invoiceNote').value = '';
+    document.getElementById('invoiceTotal').value = '0';
+    document.getElementById('invoiceDP').value = '0';
+    document.getElementById('invoiceRemaining').value = '0';
+    document.getElementById('invoiceStatus').value = 'Belum Lunas';
     
-    // Show/Hide specs
-    document.getElementById('printSpecs').style.display = type === 'print' ? 'block' : 'none';
-    document.getElementById('laptopSpecs').style.display = type === 'laptop' ? 'block' : 'none';
-    document.getElementById('generalSpecs').style.display = type === 'umum' ? 'block' : 'none';
+    document.getElementById('printSpecs').style.display = 'none';
+    document.getElementById('laptopSpecs').style.display = 'none';
+    document.getElementById('umumSpecs').style.display = 'none';
     
+    if (type === 'print') document.getElementById('printSpecs').style.display = 'block';
+    else if (type === 'laptop') document.getElementById('laptopSpecs').style.display = 'block';
+    else if (type === 'umum') document.getElementById('umumSpecs').style.display = 'block';
+    
+    const customers = loadData(DB.customers);
+    document.getElementById('invoiceCustomer').innerHTML = '<option value="">Pilih Pelanggan</option>' + customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    invoiceItems = [];
+    renderInvoiceItems();
     openModal('invoiceModal');
-};
+}
 
-const saveInvoice = () => {
-       const id = document.getElementById('invoiceId').value;
+function fillCustomerData() {
+    const customerId = document.getElementById('invoiceCustomer').value;
+    if (!customerId) return;
+    const customer = loadData(DB.customers).find(c => c.id === customerId);
+    if (customer) {
+        document.getElementById('invoiceCustomerName').value = customer.name;
+        document.getElementById('invoiceCustomerPhone').value = customer.phone || '';
+        document.getElementById('invoiceCustomerAddress').value = customer.address || '';
+    }
+}
+
+function addInvoiceItem() {
+    invoiceItems.push({ id: generateId(), name: '', qty: 1, price: 0 });
+    renderInvoiceItems();
+}
+
+function removeInvoiceItem(itemId) {
+    invoiceItems = invoiceItems.filter(i => i.id !== itemId);
+    renderInvoiceItems();
+}
+
+function updateInvoiceItem(id, field, value) {
+    const item = invoiceItems.find(i => i.id === id);
+    if (item) {
+        item[field] = field === 'name' ? value : parseFloat(value) || 0;
+        renderInvoiceItems();
+    }
+}
+
+function renderInvoiceItems() {
+    const container = document.getElementById('invoiceItems');
+    if (invoiceItems.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:20px">Belum ada item. Klik "Tambah Item".</p>';
+    } else {
+        container.innerHTML = invoiceItems.map(item => `
+            <div style="display:grid;grid-template-columns:1fr 60px 100px 100px 40px;gap:8px;margin-bottom:8px;align-items:center">
+                <input type="text" class="form-input" placeholder="Nama item" value="${item.name}" onchange="updateInvoiceItem('${item.id}','name',this.value)" style="font-size:13px;padding:8px">
+                <input type="number" class="form-input" placeholder="Qty" value="${item.qty}" onchange="updateInvoiceItem('${item.id}','qty',this.value)" style="font-size:13px;padding:8px">
+                <input type="number" class="form-input" placeholder="Harga" value="${item.price}" onchange="updateInvoiceItem('${item.id}','price',this.value)" style="font-size:13px;padding:8px">
+                <div style="font-size:13px;font-weight:600">${formatRupiah(item.qty * item.price)}</div>
+                <button onclick="removeInvoiceItem('${item.id}')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--danger)">🗑️</button>
+            </div>`).join('');
+    }
+    calculateInvoiceTotal();
+}
+
+function calculateInvoiceTotal() {
+    const total = invoiceItems.reduce((sum, item) => sum + (item.qty * item.price), 0);
+    const dp = parseFloat(document.getElementById('invoiceDP').value) || 0;
+    document.getElementById('invoiceTotal').value = total;
+    document.getElementById('invoiceRemaining').value = total - dp;
+}
+
+function saveInvoice() {
+    const id = document.getElementById('invoiceId').value;
     const type = document.getElementById('invoiceType').value;
+    const customerId = document.getElementById('invoiceCustomer').value;
+    const customerName = document.getElementById('invoiceCustomerName').value;
+    const customerPhone = document.getElementById('invoiceCustomerPhone').value;
+    const customerAddress = document.getElementById('invoiceCustomerAddress').value;
+    const total = parseFloat(document.getElementById('invoiceTotal').value) || 0;
+    const dp = parseFloat(document.getElementById('invoiceDP').value) || 0;
+    const status = document.getElementById('invoiceStatus').value;
+    const walletId = document.getElementById('invoiceWallet').value;
     
-    let specData = {};
+    if (!customerName || total <= 0) {
+        alert('⚠️ Nama pelanggan dan total invoice wajib diisi!');
+        return;
+    }
+    if ((status === 'Lunas' || status === 'DP') && !walletId) {
+        alert('⚠️ Pilih dompet penerima untuk DP/Lunas!');
+        return;
+    }
+    
+    const invoices = loadData(DB.invoices);
+    const transactions = loadData(DB.transactions);
+    const now = Date.now();
+    
+    let invoiceData = {
+        type, customerId, customerName, customerPhone, customerAddress,
+        total, dp, remaining: total - dp, status, walletId,
+        items: JSON.parse(JSON.stringify(invoiceItems)),
+        note: document.getElementById('invoiceNote').value,
+        date: new Date().toISOString().split('T'),
+        createdAt: now
+    };
+    
     if (type === 'print') {
-        specData = {
+        invoiceData.specs = {
             bookSize: document.getElementById('printBookSize').value,
             binding: document.getElementById('printBinding').value,
             finalSize: document.getElementById('printFinalSize').value,
@@ -485,333 +695,81 @@ const saveInvoice = () => {
             wrapping: document.getElementById('printWrapping').value
         };
     } else if (type === 'laptop') {
-        specData = {
-            name: document.getElementById('laptopName').value,
+        invoiceData.specs = {
+            laptopName: document.getElementById('laptopName').value,
             processor: document.getElementById('laptopProcessor').value,
             ram: document.getElementById('laptopRam').value,
             storage: document.getElementById('laptopStorage').value,
             screen: document.getElementById('laptopScreen').value,
-            condition: document.getElementById('laptopCondition').value
+            condition: document.getElementById('laptopCondition').value,
+            warranty: document.getElementById('laptopWarranty').value
         };
-    } else {
-        specData.desc = document.getElementById('generalDesc').value;
+    } else if (type === 'umum') {
+        invoiceData.specs = {
+            umumType: document.getElementById('umumType').value,
+            umumDesc: document.getElementById('umumDesc').value
+        };
     }
-
-    const data = {
-        id: id || generateId(),
-        type: type,
-        customerId: document.getElementById('invoiceCustomer').value,
-        customerName: document.getElementById('invoiceCustomerName').value,
-        customerPhone: document.getElementById('invoiceCustomerPhone').value,
-        customerAddress: document.getElementById('invoiceCustomerAddress').value,
-        price: parseFloat(document.getElementById('invoicePrice').value) || 0,
-        status: document.getElementById('invoiceStatus').value,
-        dueDate: document.getElementById('invoiceDue').value,
-        date: new Date().toISOString().split('T'),
-        specs: specData
-    };
-
+    
+    let inv;
     if (id) {
-        const idx = appData.invoices.findIndex(i => i.id === id);
-        appData.invoices[idx] = data;
-    } else {
-        appData.invoices.push(data);
-    }
-
-    saveData();
-    closeModal('invoiceModal');
-    renderInvoices();
-};
-
-// Render Functions
-const renderWallets = () => {
-    const list = document.getElementById('walletList');
-    if (!list) return;
-    list.innerHTML = '';
-    appData.wallets.forEach(w => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.innerHTML = `
-            <div class="list-item-header">
-                <span class="list-item-icon">${w.icon}</span>
-                <div class="list-item-info">
-                    <div class="list-item-title">${w.name}</div>
-                </div>
-            </div>
-            <button class="btn-outline" style="padding:4px 8px; width:auto;" onclick="editWallet('${w.id}')">Edit</button>
-        `;
-        list.appendChild(div);
-    });
-};
-
-const renderInvoices = () => {
-    const list = document.getElementById('invoiceList');
-    if (!list) return;
-    list.innerHTML = '';
-    
-    // Sort by due date
-    const sorted = [...appData.invoices].sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
-    
-    sorted.forEach(inv => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        const statusColor = inv.status === 'paid' ? 'var(--success)' : 'var(--warning)';
-        const statusText = inv.status === 'paid' ? 'Lunas' : 'Belum Lunas';
-        
-        div.innerHTML = `
-            <div class="list-item-header">
-                <span class="list-item-icon">📄</span>
-                <div class="list-item-info">
-                    <div class="list-item-title">${inv.customerName}</div>
-                    <div class="list-item-subtitle">Jatuh tempo: ${formatDate(inv.dueDate)}</div>
-                </div>
-            </div>
-            <div style="text-align:right">
-                <div style="font-weight:600; color:${statusColor}">${formatCurrency(inv.price)}</div>
-                <div style="font-size:10px; color:var(--text-secondary)">${statusText}</div>
-            </div>
-        `;
-        list.appendChild(div);
-    });
-};
-
-const renderDebts = () => {
-    const list = document.getElementById('debtList');
-    if (!list) return;
-    list.innerHTML = '';
-    appData.debts.forEach(d => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.innerHTML = `
-            <div class="list-item-header">
-                <span class="list-item-icon">💸</span>
-                <div class="list-item-info">
-                    <div class="list-item-title">${d.name}</div>
-                    <div class="list-item-subtitle">${formatDate(d.due)}</div>
-                </div>
-            </div>
-            <div style="font-weight:600; color:var(--danger)">${formatCurrency(d.amount)}</div>
-        `;
-        list.appendChild(div);
-    });
-};
-
-const renderReceivables = () => {
-    const list = document.getElementById('receivableList');
-    if (!list) return;
-    list.innerHTML = '';
-    appData.receivables.forEach(r => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.innerHTML = `
-            <div class="list-item-header">
-                <span class="list-item-icon">💰</span>
-                <div class="list-item-info">
-                    <div class="list-item-title">${r.name}</div>
-                    <div class="list-item-subtitle">${formatDate(r.due)}</div>
-                </div>
-            </div>
-            <div style="font-weight:600; color:var(--info)">${formatCurrency(r.amount)}</div>
-        `;
-        list.appendChild(div);
-    });
-};
-
-const renderFinance = () => {
-    const list = document.getElementById('financeList');
-    if (!list) return;
-    list.innerHTML = '';
-    
-    // Combine and sort
-    const all = [...appData.transactions].sort((a,b) => new Date(b.date) - new Date(a.date));
-    
-    all.forEach(t => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        const color = t.type === 'income' ? 'var(--success)' : 'var(--danger)';
-        const icon = t.type === 'income' ? '📥' : '📤';
-        
-        div.innerHTML = `
-            <div class="list-item-header">
-                <span class="list-item-icon">${icon}</span>
-                <div class="list-item-info">
-                    <div class="list-item-title">${t.desc || t.category}</div>
-                    <div class="list-item-subtitle">${formatDate(t.date)}</div>
-                </div>
-            </div>
-            <div style="font-weight:600; color:${color}">${t.type === 'income' ? '+' : '-'}${formatCurrency(t.amount)}</div>
-        `;
-        list.appendChild(div);
-    });
-};
-
-const renderCustomers = () => {
-    const list = document.getElementById('customerList');
-    if (!list) return;
-    list.innerHTML = '';
-    appData.customers.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'list-item';
-        div.innerHTML = `
-            <div class="list-item-header">
-                <span class="list-item-icon">👤</span>
-                <div class="list-item-info">
-                    <div class="list-item-title">${c.name}</div>
-                    <div class="list-item-subtitle">${c.phone}</div>
-                </div>
-            </div>
-            <button class="btn-outline" style="padding:4px 8px; width:auto;" onclick="editCustomer('${c.id}')">Edit</button>
-        `;
-        list.appendChild(div);
-    });
-};
-
-const fillCustomerData = () => {
-    const customerId = document.getElementById('invoiceCustomer').value;
-    if (!customerId) return;
-    const customer = appData.customers.find(c => c.id === customerId);
-    if (customer) {
-        document.getElementById('invoiceCustomerName').value = customer.name;
-        document.getElementById('invoiceCustomerPhone').value = customer.phone;
-        document.getElementById('invoiceCustomerAddress').value = customer.address;
-    }
-};
-
-// Initial Load
-window.onload = () => {
-    loadData();
-    
-    // Set default dates
-    const today = new Date().toISOString().split('T');
-    document.getElementById('transactionDate').value = today;
-    document.getElementById('debtDate').value = today;
-    document.getElementById('receivableDate').value = today;
-    document.getElementById('invoiceDue').value = today;
-    
-    // Theme
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    }
-    
-    // Populate Dropdowns
-    populateDropdowns();
-    
-    // Update Dashboard
-    calculateDashboard();
-};
-
-const populateDropdowns = () => {
-    // Transaction Categories
-    const catSelect = document.getElementById('transactionCategory');
-    if (catSelect) {
-        const categories = currentTransType === 'income' 
-            ? ['Penjualan', 'Layanan', 'Modal Masuk', 'Lainnya']
-            : ['Bahan Baku', 'Operasional', 'Gaji', 'Modal Keluar', 'Lainnya'];
-        catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
-    }
-
-    // Wallets
-    const walletSelects = ['transactionWallet', 'transferFrom', 'transferTo', 'debtWallet', 'receivableWallet'];
-    walletSelects.forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) {
-            sel.innerHTML = '<option value="">Pilih Dompet</option>' + 
-                appData.wallets.map(w => `<option value="${w.id}">${w.icon} ${w.name}</option>`).join('');
+        const idx = invoices.findIndex(i => i.id === id);
+        if (idx >= 0) {
+            const oldInvoice = invoices[idx];
+            const oldTransIds = oldInvoice.transactionIds || [];
+            const filteredTrans = transactions.filter(t => !oldTransIds.includes(t.id));
+            invoices[idx] = { ...oldInvoice, ...invoiceData, id: oldInvoice.id, number: oldInvoice.number, transactionIds: [] };
+            saveData(DB.transactions, filteredTrans);
+            inv = invoices[idx];
         }
-    });
-
-    // Customers
-    const custSelect = document.getElementById('invoiceCustomer');
-    if (custSelect) {
-        custSelect.innerHTML = '<option value="">Pilih Pelanggan</option>' + 
-            appData.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    }
-};
-
-// Edit Helpers
-const editWallet = (id) => {
-    const w = appData.wallets.find(x => x.id === id);
-    if (!w) return;
-    document.getElementById('walletId').value = w.id;
-    document.getElementById('walletName').value = w.name;
-    document.getElementById('walletIcon').value = w.icon;
-    openModal('walletModal');
-};
-
-// Helper to save customer (simplified for demo, assuming inline logic)
-const saveCustomer = () => {
-    const id = document.getElementById('customerId').value;
-    const data = {
-        id: id || generateId(),
-        name: document.getElementById('customerName').value,
-        phone: document.getElementById('customerPhone').value,
-        address: document.getElementById('customerAddress').value,
-        note: document.getElementById('customerNote').value
-    };
-    
-    if (id) {
-        const idx = appData.customers.findIndex(c => c.id === id);
-        appData.customers[idx] = data;
     } else {
-        appData.customers.push(data);
+        invoiceData.id = generateId();
+        invoiceData.number = generateInvoiceNumber();
+        invoiceData.transactionIds = [];
+        invoices.push(invoiceData);
+        inv = invoiceData;
     }
-    saveData();
-    closeModal('customerModal');
-    renderCustomers();
-};
-
-const editCustomer = (id) => {
-    const c = appData.customers.find(x => x.id === id);
-    if (!c) return;
-    document.getElementById('customerId').value = c.id;
-    document.getElementById('customerName').value = c.name;
-    document.getElementById('customerPhone').value = c.phone;
-    document.getElementById('customerAddress').value = c.address;
-    document.getElementById('customerNote').value = c.note;
-    openModal('customerModal');
-};
-
-// Transfer Logic
-const saveTransfer = () => {
-    const from = document.getElementById('transferFrom').value;
-    const to = document.getElementById('transferTo').value;
-    const amount = parseFloat(document.getElementById('transferAmount').value);
-    const desc = document.getElementById('transferDesc').value;
-
-    if (!from || !to || amount <= 0) {
-        alert('Mohon lengkapi data transfer');
-        return;
+    
+    inv.transactionIds = inv.transactionIds || [];
+    
+    // DP masuk ke saldo bank langsung
+    if ((status === 'DP' || status === 'Lunas') && dp > 0) {
+        const dpTrans = { 
+            id: generateId(), 
+            type: 'income', 
+            date: inv.date, 
+            category: 'DP Invoice', 
+            description: `DP Invoice ${inv.number} - ${customerName}`, 
+            amount: dp, 
+            walletId, 
+            invoiceId: inv.id, 
+            createdAt: now 
+        };
+        transactions.push(dpTrans);
+        inv.transactionIds.push(dpTrans.id);
     }
-
-    if (from === to) {
-        alert('Dompet asal dan tujuan harus berbeda');
-        return;
+    
+    // Pelunasan masuk ke saldo bank langsung
+    if (status === 'Lunas' && inv.remaining > 0) {
+        const pelunasanTrans = { 
+            id: generateId(), 
+            type: 'income', 
+            date: inv.date, 
+            category: 'Pelunasan Invoice', 
+            description: `Pelunasan Invoice ${inv.number} - ${customerName}`, 
+            amount: inv.remaining, 
+            walletId, 
+            invoiceId: inv.id, 
+            createdAt: now + 1 
+        };
+        transactions.push(pelunasanTrans);
+        inv.transactionIds.push(pelunasanTrans.id);
     }
-
-    // Create two transactions
-    const transOut = {
-        id: generateId(),
-        type: 'expense',
-        date: new Date().toISOString().split('T'),
-        category: 'Transfer',
-        desc: `Transfer ke ${appData.wallets.find(w => w.id === to).name}`,
-        amount: amount,
-        wallet: from
-    };
-
-    const transIn = {
-        id: generateId(),
-        type: 'income',
-        date: new Date().toISOString().split('T'),
-        category: 'Transfer',
-        desc: `Transfer dari ${appData.wallets.find(w => w.id === from).name}`,
-        amount: amount,
-        wallet: to
-    };
-
-    appData.transactions.push(transOut, transIn);
-    saveData();
-    closeModal('transferModal');
-    showToast('Transfer berhasil');
-};
+    
+    saveData(DB.invoices, invoices);
+    saveData(DB.transactions, transactions);
+    addActivity(id ? `✏️ Mengupdate invoice ${inv.number}` : `📄 Membuat invoice baru ${inv.number}`);
+    closeModal('invoiceModal');
+    recalculateAll();
+    renderAll();
+}
