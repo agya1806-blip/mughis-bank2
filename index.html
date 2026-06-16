@@ -1,479 +1,2427 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0ea5e9">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>MUGHIS BANK - ERP Mini</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mughis Bank v2.1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .user-info {
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d68910;
+        }
+
+        .btn-info {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #2980b9;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* ===== TAB NAVIGATION ===== */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-btn:hover {
+            border-color: #667eea;
+        }
+
+        /* ===== TAB CONTENT ===== */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ===== DASHBOARD ===== */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .card .amount {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .card.success .amount {
+            color: #27ae60;
+        }
+
+        .card.danger .amount {
+            color: #e74c3c;
+        }
+
+        .card.warning .amount {
+            color: #f39c12;
+        }
+
+        .card.info .amount {
+            color: #3498db;
+        }
+
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        /* ===== TABLE ===== */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table thead {
+            background: #667eea;
+            color: white;
+        }
+
+        table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        table tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        table tbody tr.paid {
+            background: #f0fff4;
+        }
+
+        table tbody tr.unpaid {
+            background: #fff5f5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        /* ===== ACTION BUTTONS ===== */
+        .action-btns {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .action-btns .btn {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        /* ===== MODAL ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* ===== CHART ===== */
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            max-height: 400px;
+        }
+
+        /* ===== SLIP A4 ===== */
+        .slip-a4 {
+            width: 210mm;
+            height: 297mm;
+            padding: 20mm;
+            background: white;
+            margin: 20px auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .slip-header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .slip-header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        .slip-header p {
+            margin: 5px 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .slip-body {
+            margin-bottom: 20px;
+        }
+
+        .slip-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .slip-row.total {
+            border-bottom: 2px solid #333;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 10px;
+            padding: 10px 0;
+        }
+
+        .slip-footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* ===== SEARCH & FILTER ===== */
+        .search-filter {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .search-filter input,
+        .search-filter select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-right {
+                justify-content: center;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th, table td {
+                padding: 8px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .slip-a4 {
+                width: 100%;
+                height: auto;
+                padding: 15mm;
+                margin: 10px auto;
+            }
+        }
+
+        /* ===== PRINT STYLE ===== */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .header, .tabs, .search-filter, .action-btns, .btn {
+                display: none !important;
+            }
+
+            .slip-a4 {
+                box-shadow: none;
+                margin: 0;
+                width: 210mm;
+                height: 297mm;
+                padding: 20mm;
+            }
+
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+
+        /* ===== ALERT ===== */
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: inherit;
+        }
+
+        /* ===== LOADING ===== */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <!-- LOGIN PAGE -->
-    <div id="loginPage" class="login-page active">
-        <div class="login-container">
-            <div class="login-header">
-                <div class="login-logo">MB</div>
-                <h1>MUGHIS BANK</h1>
-                <p>ERP Mini System</p>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div>
+                <h1>💰 Mughis Bank v2.1</h1>
             </div>
-            <div class="login-form">
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="loginEmail" placeholder="Masukkan email Anda">
+            <div class="header-right">
+                <div class="user-info">
+                    👤 <span id="userEmail">Not logged in</span>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" class="form-input" id="loginPassword" placeholder="Masukkan password">
-                </div>
-                <button class="btn btn-primary" onclick="loginWithPassword()" style="margin-bottom:12px">🔓 Login</button>
-                <div style="text-align:center;margin:16px 0">
-                    <span style="color:var(--text-secondary);font-size:13px">atau</span>
-                </div>
-                <div id="googleLoginBtn" style="margin-bottom:12px"></div>
-                <button class="btn btn-outline" onclick="showRegisterForm()" style="margin-bottom:12px">📝 Daftar Akun Baru</button>
+                <button class="btn btn-primary" id="loginBtn" onclick="showLoginModal()">Login</button>
+                <button class="btn btn-danger" id="logoutBtn" onclick="logout()" style="display:none;">Logout</button>
             </div>
-            <div class="login-footer">
-                <p style="font-size:12px;color:var(--text-secondary);text-align:center">
-                    💡 Tip: Gunakan akun Google untuk kemudahan login
-                </p>
+        </div>
+
+        <!-- LOGIN SECTION -->
+        <div id="loginSection" class="card" style="max-width: 400px; margin: 0 auto 30px;">
+            <h2 style="color: #667eea; margin-bottom: 20px;">Login ke Mughis Bank</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="Masukkan email Anda">
+            </div>
+            <button class="btn btn-primary" onclick="login()" style="width: 100%; margin-top: 15px;">Login</button>
+        </div>
+
+        <!-- MAIN APP (Hidden until login) -->
+        <div id="mainApp" style="display: none;">
+            <!-- TAB NAVIGATION -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+                <button class="tab-btn" onclick="switchTab('wallet')">💼 Dompet</button>
+                <button class="tab-btn" onclick="switchTab('transaction')">💳 Transaksi</button>
+                <button class="tab-btn" onclick="switchTab('invoice')">📄 Invoice</button>
+                <button class="tab-btn" onclick="switchTab('debt')">💸 Hutang & Piutang</button>
+                <button class="tab-btn" onclick="switchTab('report')">📈 Laporan</button>
+            </div>
+
+            <!-- ===== DASHBOARD TAB ===== -->
+            <div id="dashboard" class="tab-content active">
+                <div class="dashboard">
+                    <div class="card">
+                        <h3>Total Saldo</h3>
+                        <div class="amount" id="totalBalance">Rp 0</div>
+                    </div>
+                    <div class="card success">
+                        <h3>Total Pemasukan</h3>
+                        <div class="amount" id="totalIncome">Rp 0</div>
+                    </div>
+                    <div class="card danger">
+                        <h3>Total Pengeluaran</h3>
+                        <div class="amount" id="totalExpense">Rp 0</div>
+                    </div>
+                    <div class="card warning">
+                        <h3>Total Laba</h3>
+                        <div class="amount" id="totalProfit">Rp 0</div>
+                    </div>
+                </div>
+
+                <div class="dashboard">
+                    <div class="card info">
+                        <h3>Pemasukan Invoice</h3>
+                        <div class="amount" id="invoiceIncome">Rp 0</div>
+                    </div>
+                    <div class="card info">
+                        <h3>Modal Invoice</h3>
+                        <div class="amount" id="invoiceCost">Rp 0</div>
+                    </div>
+                    <div class="card info">
+                        <h3>Laba Invoice</h3>
+                        <div class="amount" id="invoiceProfit">Rp 0</div>
+                    </div>
+                    <div class="card info">
+                        <h3>Piutang</h3>
+                        <div class="amount" id="totalReceivable">Rp 0</div>
+                    </div>
+                </div>
+
+                <div class="dashboard">
+                    <div class="card info">
+                        <h3>Hutang</h3>
+                        <div class="amount" id="totalDebt">Rp 0</div>
+                    </div>
+                    <div class="card info">
+                        <h3>Laba Hutang & Piutang</h3>
+                        <div class="amount" id="debtProfit">Rp 0</div>
+                    </div>
+                    <div class="card warning">
+                        <h3>Total Laba Bersih</h3>
+                        <div class="amount" id="totalNetProfit">Rp 0</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Menu Cepat</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="showAddWalletModal()">➕ Dompet Baru</button>
+                        <button class="btn btn-success" onclick="showAddTransactionModal('income')">📥 Pemasukan</button>
+                        <button class="btn btn-danger" onclick="showAddTransactionModal('expense')">📤 Pengeluaran</button>
+                        <button class="btn btn-info" onclick="showAddInvoiceModal()">📄 Invoice Baru</button>
+                        <button class="btn btn-warning" onclick="showAddDebtModal('debt')">💸 Hutang</button>
+                        <button class="btn btn-warning" onclick="showAddDebtModal('receivable')">💰 Piutang</button>
+                        <button class="btn btn-primary" onclick="switchTab('report')">📊 Lihat Laporan</button>
+                        <button class="btn btn-danger" onclick="clearAllData()">🗑️ Hapus Semua</button>
+                    </div>
+                </div>
+
+                <!-- CHART 7 HARI -->
+                <div class="chart-container">
+                    <h3>Grafik 7 Hari Terakhir</h3>
+                    <canvas id="chartCanvas7Days"></canvas>
+                </div>
+
+                <!-- AKTIVITAS TERBARU -->
+                <div class="card">
+                    <h3>Aktivitas Terbaru</h3>
+                    <div id="recentActivity">
+                        <p style="color: #999; text-align: center;">Tidak ada aktivitas</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== WALLET TAB ===== -->
+            <div id="wallet" class="tab-content">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="showAddWalletModal()">➕ Tambah Dompet Baru</button>
+                </div>
+
+                <div id="walletList" class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Dompet</th>
+                                <th>Saldo</th>
+                                <th>Tipe</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="walletTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #999;">Tidak ada dompet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== TRANSACTION TAB ===== -->
+            <div id="transaction" class="tab-content">
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-success" onclick="showAddTransactionModal('income')">📥 Pemasukan Baru</button>
+                    <button class="btn btn-danger" onclick="showAddTransactionModal('expense')">📤 Pengeluaran Baru</button>
+                </div>
+
+                <div class="search-filter">
+                    <input type="text" id="transactionSearch" placeholder="Cari transaksi..." onkeyup="filterTransactions()">
+                    <select id="transactionType" onchange="filterTransactions()">
+                        <option value="">Semua Tipe</option>
+                        <option value="income">Pemasukan</option>
+                        <option value="expense">Pengeluaran</option>
+                    </select>
+                </div>
+
+                <div id="transactionList" class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Deskripsi</th>
+                                <th>Kategori</th>
+                                <th>Dompet</th>
+                                <th>Jumlah</th>
+                                <th>Tipe</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #999;">Tidak ada transaksi</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== INVOICE TAB ===== -->
+            <div id="invoice" class="tab-content">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="showAddInvoiceModal()">📄 Invoice Baru</button>
+                </div>
+
+                <div class="search-filter">
+                    <input type="text" id="invoiceSearch" placeholder="Cari invoice..." onkeyup="filterInvoices()">
+                    <select id="invoiceStatus" onchange="filterInvoices()">
+                        <option value="">Semua Status</option>
+                        <option value="unpaid">Belum Lunas</option>
+                        <option value="paid">Lunas</option>
+                    </select>
+                </div>
+
+                <div id="invoiceList" class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No. Invoice</th>
+                                <th>Klien</th>
+                                <th>Tanggal</th>
+                                <th>Total Harga</th>
+                                <th>Modal</th>
+                                <th>Laba</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoiceTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #999;">Tidak ada invoice</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== DEBT TAB ===== -->
+            <div id="debt" class="tab-content">
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-warning" onclick="showAddDebtModal('debt')">💸 Hutang Baru</button>
+                    <button class="btn btn-warning" onclick="showAddDebtModal('receivable')">💰 Piutang Baru</button>
+                </div>
+
+                <div class="search-filter">
+                    <input type="text" id="debtSearch" placeholder="Cari hutang/piutang..." onkeyup="filterDebts()">
+                    <select id="debtType" onchange="filterDebts()">
+                        <option value="">Semua Tipe</option>
+                        <option value="debt">Hutang</option>
+                        <option value="receivable">Piutang</option>
+                    </select>
+                </div>
+
+                <div id="debtList" class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Orang/Bisnis</th>
+                                <th>Deskripsi</th>
+                                <th>Jumlah</th>
+                                <th>Tipe</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="debtTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #999;">Tidak ada hutang/piutang</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== REPORT TAB ===== -->
+            <div id="report" class="tab-content">
+                <div class="dashboard">
+                    <div class="card">
+                        <h3>Total Transaksi</h3>
+                        <div class="amount" id="reportTotalTransactions">0</div>
+                    </div>
+                    <div class="card success">
+                        <h3>Total Invoice</h3>
+                        <div class="amount" id="reportTotalInvoices">0</div>
+                    </div>
+                    <div class="card warning">
+                        <H3>Total Hutang & Piutang</H3>
+                        <div class="amount" id="reportTotalDebts">0</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Grafik Bulanan</h3>
+                    <canvas id="chartCanvasMonthly"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Distribusi Kategori</h3>
+                    <canvas id="chartCanvasCategory"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- REGISTER PAGE -->
-    <div id="registerPage" class="login-page">
-        <div class="login-container">
-            <div class="login-header">
-                <button class="back-btn" onclick="backToLogin()">← Kembali</button>
-                <h1>Daftar Akun</h1>
-                <p>Buat akun baru untuk MUGHIS BANK</p>
+    <!-- ===== MODALS ===== -->
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login</h2>
+                <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
             </div>
-            <div class="login-form">
-                <div class="form-group">
-                    <label class="form-label">Nama Lengkap</label>
-                    <input type="text" class="form-input" id="registerName" placeholder="Nama Anda">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="registerEmail" placeholder="Email Anda">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" class="form-input" id="registerPassword" placeholder="Minimal 6 karakter">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Konfirmasi Password</label>
-                    <input type="password" class="form-input" id="registerPasswordConfirm" placeholder="Ulangi password">
-                </div>
-                <button class="btn btn-primary" onclick="registerAccount()">✅ Daftar</button>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="modalLoginEmail" placeholder="Masukkan email Anda">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('loginModal')">Batal</button>
+                <button class="btn btn-primary" onclick="loginFromModal()">Login</button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div class="app" id="mainApp" style="display:none">
-        <div class="header" id="mainHeader">
-            <div class="header-top">
-                <div class="logo-text">MUGHIS BANK</div>
-                <div class="header-actions">
-                    <button class="icon-btn" onclick="toggleTheme()">🌓</button>
-                    <button class="icon-btn" onclick="showPage('settings')">⚙️</button>
-                    <button class="icon-btn" onclick="logout()">🚪</button>
-                </div>
+    <!-- ADD WALLET MODAL -->
+    <div id="addWalletModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tambah Dompet Baru</h2>
+                <button class="modal-close" onclick="closeModal('addWalletModal')">✕</button>
             </div>
-            <div class="balance-card">
-                <div class="balance-label">Total Saldo</div>
-                <div class="balance-amount" id="totalBalance">Rp 0</div>
+            <div class="form-group">
+                <label>Nama Dompet</label>
+                <input type="text" id="walletName" placeholder="Contoh: Dompet Pribadi">
             </div>
-        </div>
-
-        <div class="page active" id="page-dashboard">
-            <div class="stats-grid" style="margin-top:16px;">
-                <div class="stat-card" onclick="showPage('finance')">
-                    <div class="stat-icon income">📥</div>
-                    <div class="stat-label">Pemasukan Invoice</div>
-                    <div class="stat-value income" id="dashInvoiceIncome">Rp 0</div>
-                </div>
-                <div class="stat-card" onclick="showPage('finance')">
-                    <div class="stat-icon expense">📤</div>
-                    <div class="stat-label">Modal Keluar</div>
-                    <div class="stat-value expense" id="dashModalOut">Rp 0</div>
-                </div>
-                <div class="stat-card" onclick="showPage('finance')">
-                    <div class="stat-icon warning">💰</div>
-                    <div class="stat-label">Laba Bersih</div>
-                    <div class="stat-value warning" id="dashNetProfit">Rp 0</div>
-                </div>
-                <div class="stat-card" onclick="showPage('debt')">
-                    <div class="stat-icon debt">💳</div>
-                    <div class="stat-label">Total Hutang/Piutang</div>
-                    <div class="stat-value debt" id="dashTotalDebtReceivable">Rp 0</div>
-                </div>
+            <div class="form-group">
+                <label>Saldo Awal</label>
+                <input type="number" id="walletBalance" placeholder="0" value="0">
             </div>
-
-            <div class="card">
-                <div class="card-title">Menu Cepat</div>
-                <div class="menu-grid">
-                    <div class="menu-item" onclick="showPage('finance')"><div class="menu-icon">💵</div><div class="menu-label">Keuangan</div></div>
-                    <div class="menu-item" onclick="showPage('wallet')"><div class="menu-icon">💳</div><div class="menu-label">Dompet</div></div>
-                    <div class="menu-item" onclick="showPage('invoice')"><div class="menu-icon">📄</div><div class="menu-label">Invoice</div></div>
-                    <div class="menu-item" onclick="showPage('customer')"><div class="menu-icon">👥</div><div class="menu-label">Pelanggan</div></div>
-                    <div class="menu-item" onclick="showPage('products')"><div class="menu-icon">📦</div><div class="menu-label">Produk</div></div>
-                    <div class="menu-item" onclick="showPage('debt')"><div class="menu-icon">💳</div><div class="menu-label">Hutang</div></div>
-                    <div class="menu-item" onclick="showPage('receivable')"><div class="menu-icon">💰</div><div class="menu-label">Piutang</div></div>
-                    <div class="menu-item" onclick="showPage('reports')"><div class="menu-icon">📊</div><div class="menu-label">Laporan</div></div>
-                </div>
+            <div class="form-group">
+                <label>Tipe</label>
+                <select id="walletType">
+                    <option value="cash">Tunai</option>
+                    <option value="bank">Bank</option>
+                    <option value="digital">Digital Wallet</option>
+                </select>
             </div>
-
-            <div class="card">
-                <div class="card-title">Ringkasan Bulan Ini</div>
-                <div class="report-item"><span class="report-label">Pendapatan Invoice</span><span class="report-value positive" id="monthInvoiceIncome">Rp 0</span></div>
-                <div class="report-item"><span class="report-label">Modal Keluar</span><span class="report-value negative" id="monthModalOut">Rp 0</span></div>
-                <div class="report-item"><span class="report-label">Laba Bersih</span><span class="report-value" id="monthProfit">Rp 0</span></div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Ringkasan Invoice</div>
-                <div class="report-item"><span class="report-label">Total Nominal Lunas</span><span class="report-value positive" id="invoicePaidTotal">Rp 0</span></div>
-                <div class="report-item"><span class="report-label">Total Nominal Belum Lunas</span><span class="report-value negative" id="invoiceUnpaidTotal">Rp 0</span></div>
-                <div class="report-item"><span class="report-label">Jumlah Invoice Lunas</span><span class="report-value positive" id="invoicePaidCount">0</span></div>
-                <div class="report-item"><span class="report-label">Jumlah Invoice Belum Lunas</span><span class="report-value negative" id="invoiceUnpaidCount">0</span></div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Grafik Keuangan 7 Hari</div>
-                <div class="chart-container" id="financeChart"></div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Aktivitas Terbaru</div>
-                <div id="recentActivity"></div>
-            </div>
-            <div style="height:20px"></div>
-        </div>
-
-        <div class="page" id="page-finance">
-            <div class="tabs">
-                <button class="tab active" onclick="switchFinanceTab('income')">Pemasukan</button>
-                <button class="tab" onclick="switchFinanceTab('expense')">Pengeluaran</button>
-            </div>
-            <div id="finance-income"><div id="incomeList"></div></div>
-            <div id="finance-expense" style="display:none;"><div id="expenseList"></div></div>
-            <button class="fab" onclick="openTransactionModal()">+</button>
-        </div>
-
-        <div class="page" id="page-wallet">
-            <div class="wallet-list" id="walletList"></div>
-            <div class="card"><button class="btn btn-primary" onclick="openWalletModal()">+ Tambah Dompet</button></div>
-            <div style="height:20px"></div>
-        </div>
-
-        <div class="page" id="page-invoice">
-            <div class="tabs">
-                <button class="tab active" onclick="switchInvoiceTab('all')">Semua</button>
-                <button class="tab" onclick="switchInvoiceTab('unpaid')">Belum Lunas</button>
-                <button class="tab" onclick="switchInvoiceTab('paid')">Lunas</button>
-            </div>
-            <div id="invoiceList"></div>
-            <button class="fab" onclick="openInvoiceTypeModal()">+</button>
-        </div>
-
-        <div class="page" id="page-customer">
-            <div class="search-bar">
-                <span class="search-icon">🔍</span>
-                <input type="text" class="search-input" id="customerSearch" placeholder="Cari pelanggan..." oninput="renderCustomers()">
-            </div>
-            <div id="customerList"></div>
-            <button class="fab" onclick="openCustomerModal()">+</button>
-        </div>
-
-        <div class="page" id="page-products">
-            <div class="tabs">
-                <button class="tab active" onclick="switchProductTab('service')">Jasa</button>
-                <button class="tab" onclick="switchProductTab('product')">Barang</button>
-            </div>
-            <div id="productList"></div>
-            <button class="fab" onclick="openProductModal()">+</button>
-        </div>
-
-        <div class="page" id="page-debt">
-            <div id="debtList"></div>
-            <button class="fab" onclick="openDebtModal()">+</button>
-        </div>
-
-        <div class="page" id="page-receivable">
-            <div id="receivableList"></div>
-            <button class="fab" onclick="openReceivableModal()">+</button>
-        </div>
-
-        <div class="page" id="page-reports">
-            <div class="tabs">
-                <button class="tab active" onclick="switchReportTab('daily')">Harian</button>
-                <button class="tab" onclick="switchReportTab('weekly')">Mingguan</button>
-                <button class="tab" onclick="switchReportTab('monthly')">Bulanan</button>
-                <button class="tab" onclick="switchReportTab('yearly')">Tahunan</button>
-            </div>
-            <div id="reportContent"></div>
-        </div>
-
-        <div class="page" id="page-settings">
-            <div class="card">
-                <div class="card-title">Profil Pengguna</div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" id="settingEmail" readonly style="background:var(--surface-2);color:var(--text-secondary)">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nama Pengguna</label>
-                    <input type="text" class="form-input" id="settingUserName" readonly style="background:var(--surface-2);color:var(--text-secondary)">
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">Profil Usaha</div>
-                <div class="form-group">
-                    <label class="form-label">Nama Usaha</label>
-                    <input type="text" class="form-input" id="settingBusinessName" placeholder="Nama usaha Anda">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nomor WhatsApp</label>
-                    <input type="text" class="form-input" id="settingWhatsApp" placeholder="08xxxxxxxxxx">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Alamat Usaha</label>
-                    <textarea class="form-textarea" id="settingAddress" placeholder="Alamat lengkap usaha Anda"></textarea>
-                </div>
-                <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan Pengaturan</button>
-            </div>
-            <div class="card">
-                <div class="card-title">Tampilan</div>
-                <div class="toggle"><span>Mode Gelap</span><div class="toggle-switch" id="darkModeToggle" onclick="toggleTheme()"></div></div>
-            </div>
-            <div class="card">
-                <div class="card-title">Sinkronisasi Data</div>
-                <div id="syncStatus" style="padding:8px 0;font-size:13px;color:var(--text-secondary)">Status: Lokal</div>
-                <button class="btn btn-primary" onclick="syncToCloud()" style="margin-bottom:10px">☁️ Sinkron ke Cloud</button>
-            </div>
-            <div class="card">
-                <div class="card-title">Data</div>
-                <button class="btn btn-outline" onclick="exportData()" style="margin-bottom:10px">📥 Export Data (JSON)</button>
-                <button class="btn btn-outline" onclick="document.getElementById('importFile').click()" style="margin-bottom:10px">📤 Import Data</button>
-                <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(this)">
-                <button class="btn btn-danger" onclick="resetData()">🗑️ Reset Semua Data</button>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('addWalletModal')">Batal</button>
+                <button class="btn btn-primary" onclick="addWallet()">Tambah</button>
             </div>
         </div>
-
-        <nav class="bottom-nav">
-            <button class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
-            <button class="nav-item" onclick="showPage('wallet')"><span class="nav-icon">💳</span><span class="nav-label">Dompet</span></button>
-            <button class="nav-item" onclick="showPage('invoice')"><span class="nav-icon">📄</span><span class="nav-label">Invoice</span></button>
-            <button class="nav-item" onclick="showPage('finance')"><span class="nav-icon">💵</span><span class="nav-label">Keuangan</span></button>
-            <button class="nav-item" onclick="showPage('reports')"><span class="nav-icon">📊</span><span class="nav-label">Laporan</span></button>
-        </nav>
-
-        <!-- MODALS -->
-        <div class="modal-overlay" id="transactionModal">
-            <div class="modal">
-                <div class="modal-header">
-                    <span class="modal-title" id="transactionModalTitle">Tambah Transaksi</span>
-                    <button class="modal-close" onclick="closeModal('transactionModal')">✕</button>
-                </div>
-                <div class="modal-body">
-                    <div class="tabs">
-                        <button class="tab active" onclick="setTransactionType('income')">Pemasukan</button>
-                        <button class="tab" onclick="setTransactionType('expense')">Pengeluaran</button>
-                    </div>
-                    <input type="hidden" id="transactionId">
-                    <input type="hidden" id="transactionType" value="income">
-                    <div class="form-group"><label class="form-label">Tanggal</label><input type="date" class="form-input" id="transactionDate"></div>
-                    <div class="form-group"><label class="form-label">Kategori</label><select class="form-select" id="transactionCategory"></select></div>
-                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="transactionDesc" placeholder="Keterangan transaksi"></div>
-                    <div class="form-group"><label class="form-label">Nominal (Rp)</label><input type="number" class="form-input" id="transactionAmount" placeholder="0"></div>
-                    <div class="form-group"><label class="form-label">Dompet</label><select class="form-select" id="transactionWallet"></select></div>
-                    <button class="btn btn-primary" onclick="saveTransaction()">Simpan</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="walletModal">
-            <div class="modal">
-                <div class="modal-header"><span class="modal-title" id="walletModalTitle">Tambah Dompet</span><button class="modal-close" onclick="closeModal('walletModal')">✕</button></div>
-                <div class="modal-body">
-                    <input type="hidden" id="walletId">
-                    <div class="form-group"><label class="form-label">Nama Dompet</label><input type="text" class="form-input" id="walletName" placeholder="Nama dompet"></div>
-                    <div class="form-group"><label class="form-label">Icon</label><select class="form-select" id="walletIcon"><option value="🏦">🏦 Bank</option><option value="💳">💳 Kartu</option><option value="💵">💵 Tunai</option><option value="📱">📱 E-Wallet</option></select></div>
-                    <button class="btn btn-primary" onclick="saveWallet()">Simpan</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="transferModal">
-            <div class="modal">
-                <div class="modal-header"><span class="modal-title">Transfer Antar Dompet</span><button class="modal-close" onclick="closeModal('transferModal')">✕</button></div>
-                <div class="modal-body">
-                    <div class="form-group"><label class="form-label">Dari Dompet</label><select class="form-select" id="transferFrom"></select></div>
-                    <div class="transfer-arrow">⬇️</div>
-                    <div class="form-group"><label class="form-label">Ke Dompet</label><select class="form-select" id="transferTo"></select></div>
-                    <div class="form-group"><label class="form-label">Nominal (Rp)</label><input type="number" class="form-input" id="transferAmount" placeholder="0"></div>
-                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="transferDesc" placeholder="Keterangan transfer"></div>
-                    <button class="btn btn-primary" onclick="saveTransfer()">Transfer</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="customerModal">
-            <div class="modal">
-                <div class="modal-header"><span class="modal-title" id="customerModalTitle">Tambah Pelanggan</span><button class="modal-close" onclick="closeModal('customerModal')">✕</button></div>
-                <div class="modal-body">
-                    <input type="hidden" id="customerId">
-                    <div class="form-group"><label class="form-label">Nama</label><input type="text" class="form-input" id="customerName" placeholder="Nama pelanggan"></div>
-                    <div class="form-group"><label class="form-label">Nomor HP</label><input type="text" class="form-input" id="customerPhone" placeholder="08xxxxxxxxxx"></div>
-                    <div class="form-group"><label class="form-label">Alamat</label><textarea class="form-textarea" id="customerAddress" placeholder="Alamat lengkap"></textarea></div>
-                    <div class="form-group"><label class="form-label">Catatan</label><textarea class="form-textarea" id="customerNote" placeholder="Catatan tambahan"></textarea></div>
-                    <button class="btn btn-primary" onclick="saveCustomer()">Simpan</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="productModal">
-            <div class="modal">
-                <div class="modal-header"><span class="modal-title" id="productModalTitle">Tambah Item</span><button class="modal-close" onclick="closeModal('productModal')">✕</button></div>
-                <div class="modal-body">
-                    <input type="hidden" id="productId"><input type="hidden" id="productType" value="service">
-                    <div class="form-group"><label class="form-label">Nama</label><input type="text" class="form-input" id="productName" placeholder="Nama produk/jasa"></div>
-                    <div class="form-group"><label class="form-label">Kategori</label><select class="form-select" id="productCategory"><option value="Percetakan">Percetakan</option><option value="Laptop">Laptop</option><option value="Umum">Umum</option></select></div>
-                    <div class="form-group"><label class="form-label">Harga (Rp)</label><input type="number" class="form-input" id="productPrice" placeholder="0"></div>
-                    <button class="btn btn-primary" onclick="saveProduct()">Simpan</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="debtModal">
-            <div class="modal">
-                <div class="modal-header"><span class="modal-title" id="debtModalTitle">Tambah Hutang</span><button class="modal-close" onclick="closeModal('debtModal')">✕</button></div>
-                <div class="modal-body">
-                    <input type="hidden" id="debtId">
-                    <div class="form-group"><label class="form-label">Nama Pemberi Hutang</label><input type="text" class="form-input" id="debtName" placeholder="Nama pemberi hutang"></div>
-                    <div class="form-group"><label class="form-label">Nomor HP</label><input type="text" class="form-input" id="debtPhone" placeholder="08xxxxxxxxxx"></div>
-                    <div class="form-group"><label class="form-label">Nominal (Rp)</label><input type="number" class="form-input" id="debtAmount" placeholder="0"></div>
-                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="debtDesc" placeholder="Keterangan"></div>
-                    <div class="form-group"><label class="form-label">Tanggal</label><input type="date" class="form-input" id="debtDate"></div>
-                    <div class="form-group"><label class="form-label">Jatuh Tempo</label><input type="date" class="form-input" id="debtDue"></div>
-                    <div class="form-group"><label class="form-label">Dompet Pembayaran</label><select class="form-select" id="debtWallet"></select></div>
-                    <button class="btn btn-primary" onclick="saveDebt()">Simpan</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="receivableModal">
-            <div class="modal">
-                <div class="modal-header"><span class="modal-title" id="receivableModalTitle">Tambah Piutang</span><button class="modal-close" onclick="closeModal('receivableModal')">✕</button></div>
-                <div class="modal-body">
-                    <input type="hidden" id="receivableId">
-                    <div class="form-group"><label class="form-label">Nama Peminjam</label><input type="text" class="form-input" id="receivableName" placeholder="Nama peminjam"></div>
-                    <div class="form-group"><label class="form-label">Nomor HP</label><input type="text" class="form-input" id="receivablePhone" placeholder="08xxxxxxxxxx"></div>
-                    <div class="form-group"><label class="form-label">Nominal (Rp)</label><input type="number" class="form-input" id="receivableAmount" placeholder="0"></div>
-                    <div class="form-group"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="receivableDesc" placeholder="Keterangan"></div>
-                    <div class="form-group"><label class="form-label">Tanggal</label><input type="date" class="form-input" id="receivableDate"></div>
-                    <div class="form-group"><label class="form-label">Jatuh Tempo</label><input type="date" class="form-input" id="receivableDue"></div>
-                    <div class="form-group"><label class="form-label">Dompet Penerima</label><select class="form-select" id="receivableWallet"></select></div>
-                    <button class="btn btn-primary" onclick="saveReceivable()">Simpan</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="invoiceTypeModal">
-            <div class="modal">
-                <div class="modal-header"><span class="modal-title">Pilih Jenis Invoice</span><button class="modal-close" onclick="closeModal('invoiceTypeModal')">✕</button></div>
-                <div class="modal-body">
-                    <button class="btn btn-primary" onclick="openInvoiceModal('print')" style="margin-bottom:12px">📚 Percetakan Buku</button>
-                    <button class="btn btn-primary" onclick="openInvoiceModal('laptop')" style="margin-bottom:12px">💻 Laptop Bekas</button>
-                    <button class="btn btn-primary" onclick="openInvoiceModal('umum')">🛒 Umum</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="invoiceModal">
-            <div class="modal" style="max-height:95vh">
-                <div class="modal-header"><span class="modal-title" id="invoiceModalTitle">Invoice Baru</span><button class="modal-close" onclick="closeModal('invoiceModal')">✕</button></div>
-                <div class="modal-body">
-                    <input type="hidden" id="invoiceId"><input type="hidden" id="invoiceType" value="print">
-                    <div class="form-group"><label class="form-label">Pelanggan</label><select class="form-select" id="invoiceCustomer" onchange="fillCustomerData()"><option value="">Pilih Pelanggan</option></select></div>
-                    <div class="form-group"><label class="form-label">Nama</label><input type="text" class="form-input" id="invoiceCustomerName"></div>
-                    <div class="form-group"><label class="form-label">Nomor HP</label><input type="text" class="form-input" id="invoiceCustomerPhone"></div>
-                    <div class="form-group"><label class="form-label">Alamat</label><textarea class="form-textarea" id="invoiceCustomerAddress"></textarea></div>
-
-                    <div id="printSpecs">
-                        <div class="card-title" style="margin-top:20px">Spesifikasi Buku</div>
-                        <div class="form-group"><label class="form-label">Ukuran Buku</label><input type="text" class="form-input" id="printBookSize" placeholder="A4, A5, dll"></div>
-                        <div class="form-group"><label class="form-label">Jenis Jilid</label><select class="form-select" id="printBinding"><option value="Lem Panas">Lem Panas</option><option value="Spiral">Spiral</option></select></div>
-                        <div class="form-group"><label class="form-label">Ukuran Buku Jadi</label><input type="text" class="form-input" id="printFinalSize" placeholder="21 x 29.7 cm"></div>
-                        <div class="form-group"><label class="form-label">Jenis Kertas Isi</label><input type="text" class="form-input" id="printPaperType" placeholder="HVS 70gr"></div>
-                        <div class="form-group"><label class="form-label">Jenis Kertas Cover</label><input type="text" class="form-input" id="printCoverType" placeholder="Art Carton 260gr"></div>
-                        <div class="form-group"><label class="form-label">Laminating</label><select class="form-select" id="printLaminating"><option value="Tidak">Tidak</option><option value="Glossy">Glossy</option><option value="Doff">Doff</option></select></div>
-                        <div class="form-group"><label class="form-label">Wrapping</label><select class="form-select" id="printWrapping"><option value="Tidak">Tidak</option><option value="Ya">Ya</option></select></div>
-                    </div>
-
-                    <div id="laptopSpecs" style="display:none">
-                        <div class="card-title" style="margin-top:20px">Spesifikasi Laptop</div>
-                        <div class="form-group"><label class="form-label">Nama Laptop</label><input type="text" class="form-input" id="laptopName" placeholder="ASUS VivoBook"></div>
-                        <div class="form-group"><label class="form-label">Processor</label><input type="text" class="form-input" id="laptopProcessor" placeholder="Intel Core i5"></div>
-                        <div class="form-group"><label class="form-label">RAM</label><input type="text" class="form-input" id="laptopRam" placeholder="8GB DDR4"></div>
-                        <div class="form-group"><label class="form-label">Penyimpanan</label><input type="text" class="form-input" id="laptopStorage" placeholder="256GB SSD"></div>
-                        <div class="form-group"><label class="form-label">Ukuran Layar</label><input type="text" class="form-input" id="laptopScreen" placeholder="14 inch"></div>
-                        <div class="form-group"><label class="form-label">Kondisi</label><select class="form-select" id="laptopCondition"><option value="Like New">Like New</option><option value="Baik">Baik</option><option value="Cukup">Cukup</option></select></div>
-                        <div class="form-group"><label class="form-label">Garansi</label><input type="text" class="form-input" id="laptopWarranty" placeholder="1 Bulan"></div>
-                    </div>
-
-                    <div id="umumSpecs" style="display:none">
-                        <div class="card-title" style="margin-top:20px">Keterangan Umum</div>
-                        <div class="form-group"><label class="form-label">Jenis Transaksi</label><input type="text" class="form-input" id="umumType" placeholder="Penjualan, Jasa, dll"></div>
-                        <div class="form-group"><label class="form-label">Keterangan</label><textarea class="form-textarea" id="umumDesc" placeholder="Keterangan detail transaksi"></textarea></div>
-                    </div>
-
-                    <div class="form-group"><label class="form-label">Catatan</label><textarea class="form-textarea" id="invoiceNote"></textarea></div>
-
-                    <div class="card-title" style="margin-top:20px">Daftar Item</div>
-                    <div id="invoiceItems"></div>
-                    <button class="btn btn-outline" onclick="addInvoiceItem()" style="margin:10px 0">+ Tambah Item</button>
-
-                    <div class="card-title" style="margin-top:20px">Pembayaran</div>
-                    <div class="form-group"><label class="form-label">Total</label><input type="number" class="form-input" id="invoiceTotal" readonly></div>
-                    <div class="form-group"><label class="form-label">DP (Uang Muka)</label><input type="number" class="form-input" id="invoiceDP" value="0" onchange="calculateInvoiceTotal()"></div>
-                    <div class="form-group"><label class="form-label">Sisa</label><input type="number" class="form-input" id="invoiceRemaining" readonly></div>
-                    <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="invoiceStatus"><option value="Belum Lunas">Belum Lunas</option><option value="DP">DP</option><option value="Lunas">Lunas</option></select></div>
-                    <div class="form-group"><label class="form-label">Dompet Penerima</label><select class="form-select" id="invoiceWallet"></select></div>
-                    <button class="btn btn-primary" onclick="saveInvoice()">Simpan Invoice</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="invoiceDetailModal">
-            <div class="modal" style="max-height:95vh;overflow-y:auto">
-                <div class="modal-header no-print"><span class="modal-title">Detail Invoice</span><button class="modal-close" onclick="closeModal('invoiceDetailModal')">✕</button></div>
-                <div class="modal-body" id="invoiceDetailContent"></div>
-                <div class="modal-body no-print" style="padding-top:0">
-                    <button class="btn btn-primary" onclick="shareInvoiceAsImage()" style="margin-bottom:10px">📸 Bagikan Slip (Foto)</button>
-                    <button class="btn btn-success" onclick="sendWhatsAppInvoice()" style="margin-bottom:10px">📱 Kirim WhatsApp</button>
-                    <button class="btn btn-outline" onclick="editCurrentInvoice()">✏️ Edit</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="activityDetailModal">
-            <div class="modal">
-                <div class="modal-header"><span class="modal-title">Detail Aktivitas</span><button class="modal-close" onclick="closeModal('activityDetailModal')">✕</button></div>
-                <div class="modal-body" id="activityDetailContent"></div>
-            </div>
-        </div>
-
-        <div id="slipCaptureArea" style="position:fixed;left:-9999px;top:0;z-index:-1;width:400px;background:#fff;padding:0"></div>
     </div>
 
-    <script src="js/app.js"></script>
-    <script src="js/modules.js"></script>
+    <!-- EDIT WALLET MODAL -->
+    <div id="editWalletModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Dompet</h2>
+                <button class="modal-close" onclick="closeModal('editWalletModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <label>Nama Dompet</label>
+                <input type="text" id="editWalletName">
+            </div>
+            <div class="form-group">
+                <label>Saldo</label>
+                <input type="number" id="editWalletBalance">
+            </div>
+            <div class="form-group">
+                <label>Tipe</label>
+                <select id="editWalletType">
+                    <option value="cash">Tunai</option>
+                    <option value="bank">Bank</option>
+                    <option value="digital">Digital Wallet</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('editWalletModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveWallet()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD TRANSACTION MODAL -->
+    <div id="addTransactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="transactionModalTitle">Tambah Pemasukan</h2>
+                <button class="modal-close" onclick="closeModal('addTransactionModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="transactionDate">
+            </div>
+            <div class="form-group">
+                <label>Deskripsi</label>
+                <input type="text" id="transactionDescription" placeholder="Deskripsi transaksi">
+            </div>
+            <div class="form-group">
+                <label>Kategori</label>
+                <input type="text" id="transactionCategory" placeholder="Contoh: Penjualan, Gaji">
+            </div>
+            <div class="form-group">
+                <label>Dompet</label>
+                <select id="transactionWallet"></select>
+            </div>
+            <div class="form-group">
+                <label>Jumlah</label>
+                <input type="number" id="transactionAmount" placeholder="0">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('addTransactionModal')">Batal</button>
+                <button class="btn btn-primary" onclick="addTransaction()">Tambah</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT TRANSACTION MODAL -->
+    <div id="editTransactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Transaksi</h2>
+                <button class="modal-close" onclick="closeModal('editTransactionModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="editTransactionDate">
+            </div>
+            <div class="form-group">
+                <label>Deskripsi</label>
+                <input type="text" id="editTransactionDescription">
+            </div>
+            <div class="form-group">
+                <label>Kategori</label>
+                <input type="text" id="editTransactionCategory">
+            </div>
+            <div class="form-group">
+                <label>Dompet</label>
+                <select id="editTransactionWallet"></select>
+            </div>
+            <div class="form-group">
+                <label>Jumlah</label>
+                <input type="number" id="editTransactionAmount">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('editTransactionModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveTransaction()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD INVOICE MODAL -->
+    <div id="addInvoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Buat Invoice Baru</h2>
+                <button class="modal-close" onclick="closeModal('addInvoiceModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <label>No. Invoice</label>
+                <input type="text" id="invoiceNumber" placeholder="INV-001">
+            </div>
+            <div class="form-group">
+                <label>Klien</label>
+                <input type="text" id="invoiceClient" placeholder="Nama klien">
+            </div>
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="invoiceDate">
+            </div>
+            <div class="form-group">
+                <label>Deskripsi Item</label>
+                <textarea id="invoiceDescription" placeholder="Deskripsi item/layanan"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Harga Jual (Total)</label>
+                <input type="number" id="invoicePrice" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label>Modal (Biaya Produksi)</label>
+                <input type="number" id="invoiceCost" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label>Dompet Penerima</label>
+                <select id="invoiceWallet"></select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('addInvoiceModal')">Batal</button>
+                <button class="btn btn-primary" onclick="addInvoice()">Buat Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT INVOICE MODAL -->
+    <div id="editInvoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Invoice</h2>
+                <button class="modal-close" onclick="closeModal('editInvoiceModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <label>No. Invoice</label>
+                <input type="text" id="editInvoiceNumber" disabled>
+            </div>
+            <div class="form-group">
+                <label>Klien</label>
+                <input type="text" id="editInvoiceClient">
+            </div>
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="editInvoiceDate">
+            </div>
+            <div class="form-group">
+                <label>Deskripsi Item</label>
+                <textarea id="editInvoiceDescription"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Harga Jual</label>
+                <input type="number" id="editInvoicePrice">
+            </div>
+            <div class="form-group">
+                <label>Modal</label>
+                <input type="number" id="editInvoiceCost">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="editInvoiceStatus">
+                    <option value="unpaid">Belum Lunas</option>
+                    <option value="paid">Lunas</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('editInvoiceModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveInvoice()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD DEBT MODAL -->
+    <div id="addDebtModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="debtModalTitle">Tambah Hutang</h2>
+                <button class="modal-close" onclick="closeModal('addDebtModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="debtDate">
+            </div>
+            <div class="form-group">
+                <label>Orang/Bisnis</label>
+                <input type="text" id="debtPerson" placeholder="Nama orang atau bisnis">
+            </div>
+            <div class="form-group">
+                <label>Deskripsi</label>
+                <textarea id="debtDescription" placeholder="Deskripsi hutang/piutang"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Jumlah</label>
+                <input type="number" id="debtAmount" placeholder="0">
+            </div>
+            <div class="form-group">
+                <label>Batas Waktu Pembayaran</label>
+                <input type="date" id="debtDueDate">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('addDebtModal')">Batal</button>
+                <button class="btn btn-primary" onclick="addDebt()">Tambah</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT DEBT MODAL -->
+    <div id="editDebtModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Hutang/Piutang</h2>
+                <button class="modal-close" onclick="closeModal('editDebtModal')">✕</button>
+            </div>
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="editDebtDate">
+            </div>
+            <div class="form-group">
+                <label>Orang/Bisnis</label>
+                <input type="text" id="editDebtPerson">
+            </div>
+            <div class="form-group">
+                <label>Deskripsi</label>
+                <textarea id="editDebtDescription"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Jumlah</label>
+                <input type="number" id="editDebtAmount">
+            </div>
+            <div class="form-group">
+                <label>Batas Waktu Pembayaran</label>
+                <input type="date" id="editDebtDueDate">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="editDebtStatus">
+                    <option value="unpaid">Belum Lunas</option>
+                    <option value="paid">Lunas</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="closeModal('editDebtModal')">Batal</button>
+                <button class="btn btn-primary" onclick="saveDebt()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVOICE SLIP MODAL -->
+    <div id="invoiceSlipModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>Invoice Slip</h2>
+                <button class="modal-close" onclick="closeModal('invoiceSlipModal')">✕</button>
+            </div>
+            <div id="invoiceSlipContent" style="background: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; max-height: 500px; overflow-y: auto;">
+                <!-- Slip akan ditampilkan di sini -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-info" onclick="printInvoiceSlip()">🖨️ Print</button>
+                <button class="btn btn-primary" onclick="downloadInvoiceSlip()">⬇️ Download PDF</button>
+                <button class="btn btn-danger" onclick="closeModal('invoiceSlipModal')">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // ===== DATA STORAGE =====
+        let currentUser = null;
+        let wallets = [];
+        let transactions = [];
+        let invoices = [];
+        let debts = [];
+        let editingWalletId = null;
+        let editingTransactionId = null;
+        let editingInvoiceId = null;
+        let editingDebtId = null;
+        let currentTransactionType = 'income';
+        let currentDebtType = 'debt';
+
+        // ===== INITIALIZATION =====
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            const today = new Date().toISOString().split('T');
+            document.getElementById('transactionDate').value = today;
+            document.getElementById('invoiceDate').value = today;
+            document.getElementById('debtDate').value = today;
+            document.getElementById('editTransactionDate').value = today;
+            document.getElementById('editInvoiceDate').value = today;
+            document.getElementById('editDebtDate').value = today;
+        });
+
+        // ===== AUTH FUNCTIONS =====
+        function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            if (!email) {
+                alert('Masukkan email Anda!');
+                return;
+            }
+            currentUser = email;
+            localStorage.setItem('currentUser', email);
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            loadData();
+            refreshDashboard();
+        }
+
+        function loginFromModal() {
+            const email = document.getElementById('modalLoginEmail').value.trim();
+            if (!email) {
+                alert('Masukkan email Anda!');
+                return;
+            }
+            currentUser = email;
+            localStorage.setItem('currentUser', email);
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            closeModal('loginModal');
+            loadData();
+            refreshDashboard();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('userEmail').textContent = 'Not logged in';
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('loginBtn').style.display = 'inline-block';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('loginEmail').value = '';
+        }
+
+        function showLoginModal() {
+            openModal('loginModal');
+        }
+
+        // ===== MODAL FUNCTIONS =====
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // ===== TAB FUNCTIONS =====
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'report') {
+                setTimeout(() => {
+                    renderMonthlyChart();
+                    renderCategoryChart();
+                }, 100);
+            }
+        }
+
+        // ===== WALLET FUNCTIONS =====
+        function showAddWalletModal() {
+            editingWalletId = null;
+            document.getElementById('walletName').value = '';
+            document.getElementById('walletBalance').value = '0';
+            document.getElementById('walletType').value = 'cash';
+            openModal('addWalletModal');
+        }
+
+        function addWallet() {
+            const name = document.getElementById('walletName').value.trim();
+            const balance = parseFloat(document.getElementById('walletBalance').value) || 0;
+            const type = document.getElementById('walletType').value;
+
+            if (!name) {
+                alert('Nama dompet tidak boleh kosong!');
+                return;
+            }
+
+            const wallet = {
+                id: Date.now(),
+                name,
+                balance,
+                type,
+                createdAt: new Date().toISOString()
+            };
+
+            wallets.push(wallet);
+            saveData();
+            refreshWalletList();
+            refreshWalletSelects();
+            closeModal('addWalletModal');
+            showNotification('Dompet berhasil ditambahkan!', 'success');
+        }
+
+        function editWallet(id) {
+            editingWalletId = id;
+            const wallet = wallets.find(w => w.id === id);
+            if (!wallet) return;
+
+            document.getElementById('editWalletName').value = wallet.name;
+            document.getElementById('editWalletBalance').value = wallet.balance;
+            document.getElementById('editWalletType').value = wallet.type;
+            openModal('editWalletModal');
+        }
+
+        function saveWallet() {
+            const name = document.getElementById('editWalletName').value.trim();
+            const balance = parseFloat(document.getElementById('editWalletBalance').value) || 0;
+            const type = document.getElementById('editWalletType').value;
+
+            if (!name) {
+                alert('Nama dompet tidak boleh kosong!');
+                return;
+            }
+
+            const wallet = wallets.find(w => w.id === editingWalletId);
+            if (wallet) {
+                wallet.name = name;
+                wallet.balance = balance;
+                wallet.type = type;
+                saveData();
+                refreshWalletList();
+                refreshWalletSelects();
+                closeModal('editWalletModal');
+                showNotification('Dompet berhasil diperbarui!', 'success');
+            }
+        }
+
+        function deleteWallet(id) {
+            if (confirm('Yakin ingin menghapus dompet ini?')) {
+                wallets = wallets.filter(w => w.id !== id);
+                saveData();
+                refreshWalletList();
+                refreshWalletSelects();
+                showNotification('Dompet berhasil dihapus!', 'success');
+            }
+        }
+
+        function refreshWalletList() {
+            const tbody = document.getElementById('walletTableBody');
+            if (wallets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">Tidak ada dompet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = wallets.map(wallet => `
+                <tr>
+                    <td><strong>${wallet.name}</strong></td>
+                    <td><strong>${formatCurrency(wallet.balance)}</strong></td>
+                    <td>${wallet.type === 'cash' ? '💵 Tunai' : wallet.type === 'bank' ? '🏦 Bank' : '📱 Digital'}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn btn-info btn-small" onclick="editWallet(${wallet.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteWallet(${wallet.id})">Hapus</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function refreshWalletSelects() {
+            const selects = ['transactionWallet', 'editTransactionWallet', 'invoiceWallet'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (!select) return;
+                const value = select.value;
+                select.innerHTML = wallets.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+                select.value = value;
+            });
+        }
+
+        // ===== TRANSACTION FUNCTIONS =====
+        function showAddTransactionModal(type) {
+            currentTransactionType = type;
+            editingTransactionId = null;
+            const title = type === 'income' ? 'Tambah Pemasukan' : 'Tambah Pengeluaran';
+            document.getElementById('transactionModalTitle').textContent = title;
+            document.getElementById('transactionDescription').value = '';
+            document.getElementById('transactionCategory').value = '';
+            document.getElementById('transactionAmount').value = '';
+            const today = new Date().toISOString().split('T');
+            document.getElementById('transactionDate').value = today;
+            refreshWalletSelects();
+            openModal('addTransactionModal');
+        }
+
+        function addTransaction() {
+            const date = document.getElementById('transactionDate').value;
+            const description = document.getElementById('transactionDescription').value.trim();
+            const category = document.getElementById('transactionCategory').value.trim();
+            const walletId = parseInt(document.getElementById('transactionWallet').value);
+            const amount = parseFloat(document.getElementById('transactionAmount').value) || 0;
+
+            if (!date || !description || !category || !walletId || amount <= 0) {
+                alert('Semua field harus diisi dengan benar!');
+                return;
+            }
+
+            const transaction = {
+                id: Date.now(),
+                date,
+                description,
+                category,
+                walletId,
+                amount,
+                type: currentTransactionType,
+                createdAt: new Date().toISOString()
+            };
+
+            transactions.push(transaction);
+
+            const wallet = wallets.find(w => w.id === walletId);
+            if (wallet) {
+                if (currentTransactionType === 'income') {
+                    wallet.balance += amount;
+                } else {
+                    wallet.balance -= amount;
+                }
+            }
+
+            saveData();
+            refreshTransactionList();
+            refreshWalletList();
+            refreshDashboard();
+            closeModal('addTransactionModal');
+            showNotification('Transaksi berhasil ditambahkan!', 'success');
+        }
+
+        function editTransaction(id) {
+            editingTransactionId = id;
+            const transaction = transactions.find(t => t.id === id);
+            if (!transaction) return;
+
+            document.getElementById('editTransactionDate').value = transaction.date;
+            document.getElementById('editTransactionDescription').value = transaction.description;
+            document.getElementById('editTransactionCategory').value = transaction.category;
+            document.getElementById('editTransactionAmount').value = transaction.amount;
+            
+            refreshWalletSelects();
+            document.getElementById('editTransactionWallet').value = transaction.walletId;
+            openModal('editTransactionModal');
+        }
+
+        function saveTransaction() {
+            const date = document.getElementById('editTransactionDate').value;
+            const description = document.getElementById('editTransactionDescription').value.trim();
+            const category = document.getElementById('editTransactionCategory').value.trim();
+            const walletId = parseInt(document.getElementById('editTransactionWallet').value);
+            const amount = parseFloat(document.getElementById('editTransactionAmount').value) || 0;
+
+            if (!date || !description || !category || !walletId || amount <= 0) {
+                alert('Semua field harus diisi dengan benar!');
+                return;
+            }
+
+            const transaction = transactions.find(t => t.id === editingTransactionId);
+            if (transaction) {
+                const oldWallet = wallets.find(w => w.id === transaction.walletId);
+                const newWallet = wallets.find(w => w.id === walletId);
+
+                // Reverse old transaction
+                if (oldWallet) {
+                    if (transaction.type === 'income') {
+                        oldWallet.balance -= transaction.amount;
+                    } else {
+                        oldWallet.balance += transaction.amount;
+                    }
+                }
+
+                // Apply new transaction
+                if (newWallet) {
+                    if (transaction.type === 'income') {
+                        newWallet.balance += amount;
+                    } else {
+                        newWallet.balance -= amount;
+                    }
+                }
+
+                transaction.date = date;
+                transaction.description = description;
+                transaction.category = category;
+                transaction.walletId = walletId;
+                transaction.amount = amount;
+
+                saveData();
+                refreshTransactionList();
+                refreshWalletList();
+                refreshDashboard();
+                closeModal('editTransactionModal');
+                showNotification('Transaksi berhasil diperbarui!', 'success');
+            }
+        }
+
+        function deleteTransaction(id) {
+            if (confirm('Yakin ingin menghapus transaksi ini?')) {
+                const transaction = transactions.find(t => t.id === id);
+                if (transaction) {
+                    const wallet = wallets.find(w => w.id === transaction.walletId);
+                    if (wallet) {
+                        if (transaction.type === 'income') {
+                            wallet.balance -= transaction.amount;
+                        } else {
+                            wallet.balance += transaction.amount;
+                        }
+                    }
+                }
+
+                transactions = transactions.filter(t => t.id !== id);
+                saveData();
+                refreshTransactionList();
+                refreshWalletList();
+                refreshDashboard();
+                showNotification('Transaksi berhasil dihapus!', 'success');
+            }
+        }
+
+        function refreshTransactionList() {
+            const tbody = document.getElementById('transactionTableBody');
+            if (transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Tidak ada transaksi</td></tr>';
+                return;
+            }
+
+            const filtered = transactions.filter(t => {
+                const search = document.getElementById('transactionSearch').value.toLowerCase();
+                const type = document.getElementById('transactionType').value;
+                const matchSearch = t.description.toLowerCase().includes(search) || 
+                                   t.category.toLowerCase().includes(search);
+                const matchType = !type || t.type === type;
+                return matchSearch && matchType;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Tidak ada transaksi</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(transaction => {
+                const wallet = wallets.find(w => w.id === transaction.walletId);
+                const typeIcon = transaction.type === 'income' ? '📥' : '📤';
+                const typeBadge = transaction.type === 'income' ? 
+                    '<span class="badge badge-success">Pemasukan</span>' : 
+                    '<span class="badge badge-danger">Pengeluaran</span>';
+                
+                return `
+                    <tr>
+                        <td>${transaction.date}</td>
+                        <td>${transaction.description}</td>
+                        <td>${transaction.category}</td>
+                        <td>${wallet ? wallet.name : 'N/A'}</td>
+                        <td><strong>${formatCurrency(transaction.amount)}</strong></td>
+                        <td>${typeBadge}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-info btn-small" onclick="editTransaction(${transaction.id})">Edit</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteTransaction(${transaction.id})">Hapus</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterTransactions() {
+            refreshTransactionList();
+        }
+
+        // ===== INVOICE FUNCTIONS =====
+        function showAddInvoiceModal() {
+            editingInvoiceId = null;
+            document.getElementById('invoiceNumber').value = `INV-${Date.now().toString().slice(-6)}`;
+            document.getElementById('invoiceClient').value = '';
+            document.getElementById('invoiceDescription').value = '';
+            document.getElementById('invoicePrice').value = '';
+            document.getElementById('invoiceCost').value = '';
+            const today = new Date().toISOString().split('T');
+            document.getElementById('invoiceDate').value = today;
+            refreshWalletSelects();
+            openModal('addInvoiceModal');
+        }
+
+        function addInvoice() {
+            const number = document.getElementById('invoiceNumber').value.trim();
+            const client = document.getElementById('invoiceClient').value.trim();
+            const date = document.getElementById('invoiceDate').value;
+            const description = document.getElementById('invoiceDescription').value.trim();
+            const price = parseFloat(document.getElementById('invoicePrice').value) || 0;
+            const cost = parseFloat(document.getElementById('invoiceCost').value) || 0;
+            const walletId = parseInt(document.getElementById('invoiceWallet').value);
+
+            if (!number || !client || !date || !description || price <= 0 || !walletId) {
+                alert('Semua field harus diisi dengan benar!');
+                return;
+            }
+
+            const invoice = {
+                id: Date.now(),
+                number,
+                client,
+                date,
+                description,
+                price,
+                cost,
+                profit: price - cost,
+                status: 'unpaid',
+                walletId,
+                createdAt: new Date().toISOString()
+            };
+
+            invoices.push(invoice);
+            saveData();
+            refreshInvoiceList();
+            refreshDashboard();
+            closeModal('addInvoiceModal');
+            showNotification('Invoice berhasil dibuat!', 'success');
+        }
+
+        function editInvoice(id) {
+            editingInvoiceId = id;
+            const invoice = invoices.find(i => i.id === id);
+            if (!invoice) return;
+
+            document.getElementById('editInvoiceNumber').value = invoice.number;
+            document.getElementById('editInvoiceClient').value = invoice.client;
+            document.getElementById('editInvoiceDate').value = invoice.date;
+            document.getElementById('editInvoiceDescription').value = invoice.description;
+            document.getElementById('editInvoicePrice').value = invoice.price;
+            document.getElementById('editInvoiceCost').value = invoice.cost;
+            document.getElementById('editInvoiceStatus').value = invoice.status;
+            openModal('editInvoiceModal');
+        }
+
+        function saveInvoice() {
+            const client = document.getElementById('editInvoiceClient').value.trim();
+            const date = document.getElementById('editInvoiceDate').value;
+            const description = document.getElementById('editInvoiceDescription').value.trim();
+            const price = parseFloat(document.getElementById('editInvoicePrice').value) || 0;
+            const cost = parseFloat(document.getElementById('editInvoiceCost').value) || 0;
+            const status = document.getElementById('editInvoiceStatus').value;
+
+            if (!client || !date || !description || price <= 0) {
+                alert('Semua field harus diisi dengan benar!');
+                return;
+            }
+
+            const invoice = invoices.find(i => i.id === editingInvoiceId);
+            if (invoice) {
+                invoice.client = client;
+                invoice.date = date;
+                invoice.description = description;
+                invoice.price = price;
+                invoice.cost = cost;
+                invoice.profit = price - cost;
+                invoice.status = status;
+
+                saveData();
+                refreshInvoiceList();
+                refreshDashboard();
+                closeModal('editInvoiceModal');
+                showNotification('Invoice berhasil diperbarui!', 'success');
+            }
+        }
+
+        function deleteInvoice(id) {
+            if (confirm('Yakin ingin menghapus invoice ini?')) {
+                invoices = invoices.filter(i => i.id !== id);
+                saveData();
+                refreshInvoiceList();
+                refreshDashboard();
+                showNotification('Invoice berhasil dihapus!', 'success');
+            }
+        }
+
+        function refreshInvoiceList() {
+            const tbody = document.getElementById('invoiceTableBody');
+            if (invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">Tidak ada invoice</td></tr>';
+                return;
+            }
+
+            const filtered = invoices.filter(i => {
+                const search = document.getElementById('invoiceSearch').value.toLowerCase();
+                const status = document.getElementById('invoiceStatus').value;
+                const matchSearch = i.number.toLowerCase().includes(search) || 
+                                   i.client.toLowerCase().includes(search);
+                const matchStatus = !status || i.status === status;
+                return matchSearch && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">Tidak ada invoice</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(invoice => {
+                const statusBadge = invoice.status === 'paid' ? 
+                    '<span class="badge badge-success">Lunas</span>' : 
+                    '<span class="badge badge-danger">Belum Lunas</span>';
+                
+                return `
+                    <tr class="${invoice.status}">
+                        <td><strong>${invoice.number}</strong></td>
+                        <td>${invoice.client}</td>
+                        <td>${invoice.date}</td>
+                        <td><strong>${formatCurrency(invoice.price)}</strong></td>
+                        <td>${formatCurrency(invoice.cost)}</td>
+                        <td>${formatCurrency(invoice.profit)}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-primary btn-small" onclick="showInvoiceSlip(${invoice.id})">Lihat</button>
+                                <button class="btn btn-info btn-small" onclick="editInvoice(${invoice.id})">Edit</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteInvoice(${invoice.id})">Hapus</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterInvoices() {
+            refreshInvoiceList();
+        }
+
+        function showInvoiceSlip(id) {
+            const invoice = invoices.find(i => i.id === id);
+            if (!invoice) return;
+
+            const slip = `
+                <div class="slip-a4">
+                    <div class="slip-header">
+                        <h2>INVOICE</h2>
+                        <p>Mughis Bank ERP System</p>
+                    </div>
+                    <div class="slip-body">
+                        <div class="slip-row">
+                            <span><strong>No. Invoice:</strong></span>
+                            <span>${invoice.number}</span>
+                        </div>
+                        <div class="slip-row">
+                            <span><strong>Klien:</strong></span>
+                            <span>${invoice.client}</span>
+                        </div>
+                        <div class="slip-row">
+                            <span><strong>Tanggal:</strong></span>
+                            <span>${invoice.date}</span>
+                        </div>
+                        <div class="slip-row">
+                            <span><strong>Deskripsi:</strong></span>
+                            <span>${invoice.description}</span>
+                        </div>
+                        <div class="slip-row" style="margin-top: 20px;">
+                            <span><strong>Harga Jual:</strong></span>
+                            <span>${formatCurrency(invoice.price)}</span>
+                        </div>
+                        <div class="slip-row">
+                            <span><strong>Modal (Biaya):</strong></span>
+                            <span>${formatCurrency(invoice.cost)}</span>
+                        </div>
+                        <div class="slip-row total">
+                            <span><strong>Laba:</strong></span>
+                            <span>${formatCurrency(invoice.profit)}</span>
+                        </div>
+                        <div class="slip-row" style="margin-top: 20px;">
+                            <span><strong>Status:</strong></span>
+                            <span>${invoice.status === 'paid' ? '✅ LUNAS' : '❌ BELUM LUNAS'}</span>
+                        </div>
+                    </div>
+                    <div class="slip-footer">
+                        <p>Terima kasih telah berbisnis dengan kami!</p>
+                        <p>${new Date().toLocaleString('id-ID')}</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('invoiceSlipContent').innerHTML = slip;
+            openModal('invoiceSlipModal');
+        }
+
+        function printInvoiceSlip() {
+            const content = document.getElementById('invoiceSlipContent').innerHTML;
+            const printWindow = window.open('', '', 'width=800,height=600');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Invoice Slip</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        .slip-a4 { width: 210mm; height: 297mm; padding: 20mm; }
+                        .slip-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+                        .slip-header h2 { margin: 0; font-size: 24px; color: #667eea; }
+                        .slip-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+                        .slip-row.total { border-bottom: 2px solid #333; font-weight: bold; font-size: 16px; margin-top: 10px; padding: 10px 0; }
+                        .slip-footer { text-align: center; margin-top: 40px; font-size: 12px; color: #999; }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function downloadInvoiceSlip() {
+            const content = document.getElementById('invoiceSlipContent').innerHTML;
+            const element = document.createElement('div');
+            element.innerHTML = content;
+            document.body.appendChild(element);
+
+            html2canvas(element, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = `invoice-${Date.now()}.png`;
+                link.click();
+                document.body.removeChild(element);
+            });
+        }
+
+        // ===== DEBT FUNCTIONS =====
+        function showAddDebtModal(type) {
+            currentDebtType = type;
+            editingDebtId = null;
+            const title = type === 'debt' ? 'Tambah Hutang' : 'Tambah Piutang';
+            document.getElementById('debtModalTitle').textContent = title;
+            document.getElementById('debtPerson').value = '';
+            document.getElementById('debtDescription').value = '';
+            document.getElementById('debtAmount').value = '';
+            const today = new Date().toISOString().split('T');
+            document.getElementById('debtDate').value = today;
+            document.getElementById('debtDueDate').value = today;
+            openModal('addDebtModal');
+        }
+
+        function addDebt() {
+            const date = document.getElementById('debtDate').value;
+            const person = document.getElementById('debtPerson').value.trim();
+            const description = document.getElementById('debtDescription').value.trim();
+            const amount = parseFloat(document.getElementById('debtAmount').value) || 0;
+            const dueDate = document.getElementById('debtDueDate').value;
+
+            if (!date || !person || !description || amount <= 0 || !dueDate) {
+                alert('Semua field harus diisi dengan benar!');
+                return;
+            }
+
+            const debt = {
+                id: Date.now(),
+                date,
+                person,
+                description,
+                amount,
+                dueDate,
+                type: currentDebtType,
+                status: 'unpaid',
+                createdAt: new Date().toISOString()
+            };
+
+            debts.push(debt);
+            saveData();
+            refreshDebtList();
+            refreshDashboard();
+            closeModal('addDebtModal');
+            showNotification('Hutang/Piutang berhasil ditambahkan!', 'success');
+        }
+
+        function editDebt(id) {
+            editingDebtId = id;
+            const debt = debts.find(d => d.id === id);
+            if (!debt) return;
+
+            document.getElementById('editDebtDate').value = debt.date;
+            document.getElementById('editDebtPerson').value = debt.person;
+            document.getElementById('editDebtDescription').value = debt.description;
+            document.getElementById('editDebtAmount').value = debt.amount;
+            document.getElementById('editDebtDueDate').value = debt.dueDate;
+            document.getElementById('editDebtStatus').value = debt.status;
+            openModal('editDebtModal');
+        }
+
+        function saveDebt() {
+            const date = document.getElementById('editDebtDate').value;
+            const person = document.getElementById('editDebtPerson').value.trim();
+            const description = document.getElementById('editDebtDescription').value.trim();
+            const amount = parseFloat(document.getElementById('editDebtAmount').value) || 0;
+            const dueDate = document.getElementById('editDebtDueDate').value;
+            const status = document.getElementById('editDebtStatus').value;
+
+            if (!date || !person || !description || amount <= 0 || !dueDate) {
+                alert('Semua field harus diisi dengan benar!');
+                return;
+            }
+
+            const debt = debts.find(d => d.id === editingDebtId);
+            if (debt) {
+                debt.date = date;
+                debt.person = person;
+                debt.description = description;
+                debt.amount = amount;
+                debt.dueDate = dueDate;
+                debt.status = status;
+
+                saveData();
+                refreshDebtList();
+                refreshDashboard();
+                closeModal('editDebtModal');
+                showNotification('Hutang/Piutang berhasil diperbarui!', 'success');
+            }
+        }
+
+        function deleteDebt(id) {
+            if (confirm('Yakin ingin menghapus hutang/piutang ini?')) {
+                debts = debts.filter(d => d.id !== id);
+                saveData();
+                refreshDebtList();
+                refreshDashboard();
+                showNotification('Hutang/Piutang berhasil dihapus!', 'success');
+            }
+        }
+
+        function refreshDebtList() {
+            const tbody = document.getElementById('debtTableBody');
+            if (debts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Tidak ada hutang/piutang</td></tr>';
+                return;
+            }
+
+            const filtered = debts.filter(d => {
+                const search = document.getElementById('debtSearch').value.toLowerCase();
+                const type = document.getElementById('debtType').value;
+                const matchSearch = d.person.toLowerCase().includes(search) || 
+                                   d.description.toLowerCase().includes(search);
+                const matchType = !type || d.type === type;
+                return matchSearch && matchType;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">Tidak ada hutang/piutang</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(debt => {
+                const typeBadge = debt.type === 'debt' ? 
+                    '<span class="badge badge-danger">Hutang</span>' : 
+                    '<span class="badge badge-success">Piutang</span>';
+                const statusBadge = debt.status === 'paid' ? 
+                    '<span class="badge badge-success">Lunas</span>' : 
+                    '<span class="badge badge-warning">Belum Lunas</span>';
+                
+                return `
+                    <tr>
+                        <td>${debt.date}</td>
+                        <td><strong>${debt.person}</strong></td>
+                        <td>${debt.description}</td>
+                        <td><strong>${formatCurrency(debt.amount)}</strong></td>
+                        <td>${typeBadge}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-info btn-small" onclick="editDebt(${debt.id})">Edit</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteDebt(${debt.id})">Hapus</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterDebts() {
+            refreshDebtList();
+        }
+
+        // ===== DASHBOARD FUNCTIONS =====
+        function refreshDashboard() {
+            // Calculate totals
+            const totalIncome = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const totalExpense = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const totalBalance = wallets.reduce((sum, w) => sum + w.balance, 0);
+            const totalProfit = totalIncome - totalExpense;
+
+            // Invoice calculations
+            const paidInvoices = invoices.filter(i => i.status === 'paid');
+            const invoiceIncome = paidInvoices.reduce((sum, i) => sum + i.price, 0);
+            const invoiceCost = paidInvoices.reduce((sum, i) => sum + i.cost, 0);
+            const invoiceProfit = paidInvoices.reduce((sum, i) => sum + i.profit, 0);
+
+            // Debt calculations
+            const paidDebts = debts.filter(d => d.status === 'paid');
+            const totalReceivable = paidDebts
+                .filter(d => d.type === 'receivable')
+                .reduce((sum, d) => sum + d.amount, 0);
+
+            const totalDebt = paidDebts
+                .filter(d => d.type === 'debt')
+                .reduce((sum, d) => sum + d.amount, 0);
+
+            const debtProfit = totalReceivable - totalDebt;
+            const totalNetProfit = totalProfit + invoiceProfit + debtProfit;
+
+            // Update dashboard
+            document.getElementById('totalBalance').textContent = formatCurrency(totalBalance);
+            document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
+            document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
+            document.getElementById('totalProfit').textContent = formatCurrency(totalProfit);
+            document.getElementById('invoiceIncome').textContent = formatCurrency(invoiceIncome);
+            document.getElementById('invoiceCost').textContent = formatCurrency(invoiceCost);
+            document.getElementById('invoiceProfit').textContent = formatCurrency(invoiceProfit);
+            document.getElementById('totalReceivable').textContent = formatCurrency(totalReceivable);
+            document.getElementById('totalDebt').textContent = formatCurrency(totalDebt);
+            document.getElementById('debtProfit').textContent = formatCurrency(debtProfit);
+            document.getElementById('totalNetProfit').textContent = formatCurrency(totalNetProfit);
+
+            // Report
+            document.getElementById('reportTotalTransactions').textContent = transactions.length;
+            document.getElementById('reportTotalInvoices').textContent = invoices.length;
+            document.getElementById('reportTotalDebts').textContent = debts.length;
+
+            // Recent activity
+            const allActivities = [
+                ...transactions.map(t => ({
+                    type: 'transaction',
+                    date: t.date,
+                    description: `${t.type === 'income' ? '📥' : '📤'} ${t.description} - ${formatCurrency(t.amount)}`,
+                    timestamp: new Date(t.createdAt).getTime()
+                })),
+                ...invoices.map(i => ({
+                    type: 'invoice',
+                    date: i.date,
+                    description: `📄 Invoice ${i.number} - ${formatCurrency(i.price)}`,
+                    timestamp: new Date(i.createdAt).getTime()
+                })),
+                ...debts.map(d => ({
+                    type: 'debt',
+                    date: d.date,
+                    description: `${d.type === 'debt' ? '💸' : '💰'} ${d.person} - ${formatCurrency(d.amount)}`,
+                    timestamp: new Date(d.createdAt).getTime()
+                }))
+            ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+
+            const activityHtml = allActivities.length > 0 ?
+                allActivities.map(a => `<div style="padding: 8px 0; border-bottom: 1px solid #eee;">${a.description}</div>`).join('') :
+                '<p style="color: #999; text-align: center;">Tidak ada aktivitas</p>';
+
+            document.getElementById('recentActivity').innerHTML = activityHtml;
+
+            // Charts
+            render7DaysChart();
+        }
+
+        function render7DaysChart() {
+            const canvas = document.getElementById('chartCanvas7Days');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const days = [];
+            const incomeData = [];
+            const expenseData = [];
+
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T');
+                days.push(dateStr.slice(5));
+
+                const dayIncome = transactions
+                    .filter(t => t.type === 'income' && t.date === dateStr)
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                const dayExpense = transactions
+                    .filter(t => t.type === 'expense' && t.date === dateStr)
+                    .reduce((sum, t) => sum + t.amount, 0);
+
+                incomeData.push(dayIncome);
+                expenseData.push(dayExpense);
+            }
+
+            if (window.chart7Days) {
+                window.chart7Days.destroy();
+            }
+
+            window.chart7Days = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: 'Pemasukan',
+                            data: incomeData,
+                            backgroundColor: '#27ae60',
+                            borderColor: '#229954',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Pengeluaran',
+                            data: expenseData,
+                            backgroundColor: '#e74c3c',
+                            borderColor: '#c0392b',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderMonthlyChart() {
+            const canvas = document.getElementById('chartCanvasMonthly');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const incomeData = new Array(12).fill(0);
+            const expenseData = new Array(12).fill(0);
+
+            transactions.forEach(t => {
+                const month = new Date(t.date).getMonth();
+                if (t.type === 'income') {
+                    incomeData[month] += t.amount;
+                } else {
+                    expenseData[month] += t.amount;
+                }
+            });
+
+            if (window.chartMonthly) {
+                window.chartMonthly.destroy();
+            }
+
+            window.chartMonthly = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Pemasukan',
+                            data: incomeData,
+                            borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Pengeluaran',
+                            data: expenseData,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderCategoryChart() {
+            const canvas = document.getElementById('chartCanvasCategory');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const categories = {};
+
+            transactions.forEach(t => {
+                if (!categories[t.category]) {
+                    categories[t.category] = 0;
+                }
+                categories[t.category] += t.amount;
+            });
+
+            const labels = Object.keys(categories);
+            const data = Object.values(categories);
+            const colors = [
+                '#667eea', '#764ba2', '#f093fb', '#4facfe',
+                '#43e97b', '#fa709a', '#fee140', '#30b0fe'
+            ];
+
+            if (window.chartCategory) {
+                window.chartCategory.destroy();
+            }
+
+            window.chartCategory = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        // ===== UTILITY FUNCTIONS =====
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function saveData() {
+            if (!currentUser) return;
+            const data = {
+                wallets,
+                transactions,
+                invoices,
+                debts,
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem(`mughisbank_${currentUser}`, JSON.stringify(data));
+        }
+
+        function loadData() {
+            if (!currentUser) return;
+            const data = localStorage.getItem(`mughisbank_${currentUser}`);
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    wallets = parsed.wallets || [];
+                    transactions = parsed.transactions || [];
+                    invoices = parsed.invoices || [];
+                    debts = parsed.debts || [];
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                }
+            }
+            refreshWalletList();
+            refreshWalletSelects();
+            refreshTransactionList();
+            refreshInvoiceList();
+            refreshDebtList();
+        }
+
+        function showNotification(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '2000';
+            alertDiv.style.maxWidth = '400px';
+            alertDiv.innerHTML = `
+                <span>${message}</span>
+                <button class="alert-close" onclick="this.parentElement.remove()">✕</button>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3000);
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ Yakin ingin menghapus SEMUA data? Tindakan ini tidak dapat dibatalkan!')) {
+                if (confirm('Konfirmasi lagi: Hapus SEMUA data?')) {
+                    wallets = [];
+                    transactions = [];
+                    invoices = [];
+                    debts = [];
+                    saveData();
+                    refreshWalletList();
+                    refreshTransactionList();
+                    refreshInvoiceList();
+                    refreshDebtList();
+                    refreshDashboard();
+                    showNotification('Semua data berhasil dihapus!', 'success');
+                }
+            }
+        }
+
+        // Check if user is logged in on page load
+        window.addEventListener('load', () => {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = savedUser;
+                document.getElementById('userEmail').textContent = savedUser;
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                loadData();
+                refreshDashboard();
+            }
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
