@@ -650,6 +650,8 @@ function calculateInvoiceTotal() {
     document.getElementById('invoiceRemaining').value = total - dp;
 }
 
+// ==================== INVOICE MODULE (UPDATED - FIX DP/LUNAS SYNC) ====================
+
 function saveInvoice() {
     const id = document.getElementById('invoiceId').value;
     const type = document.getElementById('invoiceType').value;
@@ -713,16 +715,29 @@ function saveInvoice() {
     
     let inv;
     if (id) {
+        // EDIT MODE - HAPUS TRANSAKSI LAMA TERLEBIH DAHULU
         const idx = invoices.findIndex(i => i.id === id);
         if (idx >= 0) {
             const oldInvoice = invoices[idx];
             const oldTransIds = oldInvoice.transactionIds || [];
+            
+            // HAPUS TRANSAKSI LAMA
             const filteredTrans = transactions.filter(t => !oldTransIds.includes(t.id));
-            invoices[idx] = { ...oldInvoice, ...invoiceData, id: oldInvoice.id, number: oldInvoice.number, transactionIds: [] };
+            
+            // UPDATE INVOICE
+            invoices[idx] = { 
+                ...oldInvoice, 
+                ...invoiceData, 
+                id: oldInvoice.id, 
+                number: oldInvoice.number, 
+                transactionIds: [] 
+            };
+            
             saveData(DB.transactions, filteredTrans);
             inv = invoices[idx];
         }
     } else {
+        // CREATE MODE
         invoiceData.id = generateId();
         invoiceData.number = generateInvoiceNumber();
         invoiceData.transactionIds = [];
@@ -731,40 +746,44 @@ function saveInvoice() {
     }
     
     inv.transactionIds = inv.transactionIds || [];
+    const newTransIds = [];
     
-    // DP masuk ke saldo bank langsung
-    if ((status === 'DP' || status === 'Lunas') && dp > 0) {
-        const dpTrans = { 
-            id: generateId(), 
-            type: 'income', 
-            date: inv.date, 
-            category: 'DP Invoice', 
-            description: `DP Invoice ${inv.number} - ${customerName}`, 
-            amount: dp, 
-            walletId, 
-            invoiceId: inv.id, 
-            createdAt: now 
-        };
-        transactions.push(dpTrans);
-        inv.transactionIds.push(dpTrans.id);
+    // BUAT TRANSAKSI BARU BERDASARKAN STATUS
+    if (status === 'DP' || status === 'Lunas') {
+        if (dp > 0) {
+            const dpTrans = {
+                id: generateId(),
+                type: 'income',
+                date: inv.date,
+                category: 'DP Invoice',
+                description: `DP Invoice ${inv.number} - ${customerName}`,
+                amount: dp,
+                walletId: walletId,
+                invoiceId: inv.id,
+                createdAt: now
+            };
+            transactions.push(dpTrans);
+            newTransIds.push(dpTrans.id);
+        }
+        
+        if (status === 'Lunas' && inv.remaining > 0) {
+            const pelunasanTrans = {
+                id: generateId(),
+                type: 'income',
+                date: inv.date,
+                category: 'Pelunasan Invoice',
+                description: `Pelunasan Invoice ${inv.number} - ${customerName}`,
+                amount: inv.remaining,
+                walletId: walletId,
+                invoiceId: inv.id,
+                createdAt: now + 1
+            };
+            transactions.push(pelunasanTrans);
+            newTransIds.push(pelunasanTrans.id);
+        }
     }
     
-    // Pelunasan masuk ke saldo bank langsung
-    if (status === 'Lunas' && inv.remaining > 0) {
-        const pelunasanTrans = { 
-            id: generateId(), 
-            type: 'income', 
-            date: inv.date, 
-            category: 'Pelunasan Invoice', 
-            description: `Pelunasan Invoice ${inv.number} - ${customerName}`, 
-            amount: inv.remaining, 
-            walletId, 
-            invoiceId: inv.id, 
-            createdAt: now + 1 
-        };
-        transactions.push(pelunasanTrans);
-        inv.transactionIds.push(pelunasanTrans.id);
-    }
+    inv.transactionIds = newTransIds;
     
     saveData(DB.invoices, invoices);
     saveData(DB.transactions, transactions);
@@ -772,4 +791,4 @@ function saveInvoice() {
     closeModal('invoiceModal');
     recalculateAll();
     renderAll();
-}
+},
