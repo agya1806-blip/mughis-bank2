@@ -2,7 +2,7 @@
 
 const APP_NAME = 'MUGHIS BANK';
 const JSONBIN_API = 'https://api.jsonbin.io/v3/b';
-const JSONBIN_KEY = '$2a$10$mughisgroup2024secretkey';
+const JSONBIN_KEY = '$2a$10$mSL6WQm7kBCTRDisRmHm4ugCwt7LVugUA5SPIheR8l.FpGo1g.5jq';
 
 // Firebase Config (Opsional untuk integrasi lebih lanjut)
 const FIREBASE_CONFIG = {
@@ -1317,6 +1317,397 @@ function editCurrentInvoice() {
     renderInvoiceItems();
     openModal('invoiceModal');
 }
+// ==================== INVOICE DETAIL & SLIP FOTO (UPDATED) ====================
+
+function showInvoiceDetail(id) {
+    currentInvoiceId = id;
+    const inv = loadData(DB.invoices).find(i => i.id === id);
+    if (!inv) return;
+    const settings = loadData(DB.settings);
+    
+    let specsHtml = '';
+    if (inv.type === 'print') {
+        specsHtml = `<div class="invoice-section">
+            <div class="invoice-section-title">Spesifikasi Buku</div>
+            <p><strong>Ukuran:</strong> ${inv.specs?.bookSize||'-'} | <strong>Jilid:</strong> ${inv.specs?.binding||'-'}</p>
+            <p><strong>Ukuran Jadi:</strong> ${inv.specs?.finalSize||'-'}</p>
+            <p><strong>Kertas Isi:</strong> ${inv.specs?.paperType||'-'} | <strong>Cover:</strong> ${inv.specs?.coverType||'-'}</p>
+            <p><strong>Laminating:</strong> ${inv.specs?.laminating||'-'} | <strong>Wrapping:</strong> ${inv.specs?.wrapping||'-'}</p>
+        </div>`;
+    } else if (inv.type === 'laptop') {
+        specsHtml = `<div class="invoice-section">
+            <div class="invoice-section-title">Spesifikasi Laptop</div>
+            <p><strong>${inv.specs?.laptopName||'-'}</strong></p>
+            <p><strong>Processor:</strong> ${inv.specs?.processor||'-'} | <strong>RAM:</strong> ${inv.specs?.ram||'-'}</p>
+            <p><strong>Storage:</strong> ${inv.specs?.storage||'-'} | <strong>Layar:</strong> ${inv.specs?.screen||'-'}</p>
+            <p><strong>Kondisi:</strong> ${inv.specs?.condition||'-'} | <strong>Garansi:</strong> ${inv.specs?.warranty||'-'}</p>
+        </div>`;
+    } else if (inv.type === 'umum') {
+        specsHtml = `<div class="invoice-section">
+            <div class="invoice-section-title">Keterangan</div>
+            <p><strong>Jenis:</strong> ${inv.specs?.umumType||'-'}</p>
+            <p>${inv.specs?.umumDesc||'-'}</p>
+        </div>`;
+    }
+    
+    const itemsHtml = inv.items?.map((item, i) => `
+        <tr>
+            <td style="text-align:center">${i+1}</td>
+            <td>${item.name}</td>
+            <td style="text-align:center">${item.qty}</td>
+            <td style="text-align:right">${formatRupiah(item.price)}</td>
+            <td style="text-align:right">${formatRupiah(item.qty*item.price)}</td>
+        </tr>
+    `).join('') || '';
+    
+    const invoiceHtml = `
+        <div class="invoice-preview" id="printArea" style="background:white;color:#0f172a;padding:24px;width:100%;margin:0">
+            <div class="invoice-header">
+                <div class="invoice-logo">MB</div>
+                <div class="invoice-title">${settings.businessName}</div>
+                <div class="invoice-meta">${settings.address}<br>WA: ${settings.whatsapp}</div>
+            </div>
+            <div class="invoice-section">
+                <div class="invoice-section-title">INVOICE</div>
+                <p><strong>${inv.number}</strong> | ${formatDate(inv.date)}</p>
+            </div>
+            <div class="invoice-section">
+                <div class="invoice-section-title">Pelanggan</div>
+                <p><strong>${inv.customerName}</strong><br>${inv.customerPhone||'-'}<br>${inv.customerAddress||'-'}</p>
+            </div>
+            ${specsHtml}
+            <div class="invoice-section">
+                <div class="invoice-section-title">Daftar Item</div>
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th style="width:5%">No</th>
+                            <th style="width:40%">Item</th>
+                            <th style="width:15%;text-align:center">Qty</th>
+                            <th style="width:20%;text-align:right">Harga</th>
+                            <th style="width:20%;text-align:right">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+            </div>
+            <div class="invoice-total">
+                <div class="invoice-total-row"><span>Total</span><span>${formatRupiah(inv.total)}</span></div>
+                <div class="invoice-total-row"><span>DP</span><span>${formatRupiah(inv.dp)}</span></div>
+                <div class="invoice-total-row final"><span>Sisa</span><span>${formatRupiah(inv.remaining)}</span></div>
+            </div>
+            <div style="margin-top:12px;text-align:center">
+                <span class="badge ${inv.status==='Lunas'?'badge-success':inv.status==='DP'?'badge-warning':'badge-danger'}" style="font-size:13px;padding:6px 16px">${inv.status}</span>
+            </div>
+            ${inv.note ? `<div style="margin-top:12px;padding:10px;background:#f8fafc;border-radius:8px;font-size:12px"><strong>Catatan:</strong> ${inv.note}</div>` : ''}
+            <div style="margin-top:16px;padding:12px;background:#f0f9ff;border-radius:8px;text-align:center;font-size:11px;color:#0f172a">
+                <p style="font-weight:700;margin-bottom:6px">💳 Metode Pembayaran:</p>
+                <p>SeaBank • Muhammad Aghisna • 901007430064</p>
+                <p>BSI • Muhammad Aghisna • 7197202798</p>
+                <p>DANA • ${settings.whatsapp}</p>
+                <p style="margin-top:8px;color:#64748b">Kirim bukti transfer via WhatsApp setelah pembayaran.</p>
+            </div>
+        </div>`;
+    
+    document.getElementById('invoiceDetailContent').innerHTML = invoiceHtml;
+    
+    // Tampilkan/sembunyikan tombol lunas
+    const lunasBtn = document.getElementById('invoiceLunasBtn');
+    if (inv.status !== 'Lunas') {
+        lunasBtn.style.display = 'inline-flex';
+    } else {
+        lunasBtn.style.display = 'none';
+    }
+    
+    openModal('invoiceDetailModal');
+}
+
+// Fungsi untuk menandai invoice sebagai lunas
+function markInvoiceAsPaid() {
+    const inv = loadData(DB.invoices).find(i => i.id === currentInvoiceId);
+    if (!inv) return;
+    
+    const wallets = loadData(DB.wallets);
+    let walletHtml = '<select id="invoicePaymentWallet" class="form-select">';
+    walletHtml += '<option value="">Pilih Dompet</option>';
+    wallets.forEach(w => {
+        walletHtml += `<option value="${w.id}">${w.icon} ${w.name}</option>`;
+    });
+    walletHtml += '</select>';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">✅ Tandai Invoice Lunas</span>
+                <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Invoice</label>
+                    <input type="text" class="form-input" value="${inv.number}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pelanggan</label>
+                    <input type="text" class="form-input" value="${inv.customerName}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Total</label>
+                    <input type="text" class="form-input" value="${formatRupiah(inv.total)}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sudah Dibayar (DP)</label>
+                    <input type="text" class="form-input" value="${formatRupiah(inv.dp)}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sisa Pembayaran</label>
+                    <input type="text" class="form-input" value="${formatRupiah(inv.remaining)}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pilih Dompet Penerima</label>
+                    ${walletHtml}
+                </div>
+                <button class="btn btn-primary" onclick="confirmMarkInvoiceAsPaid('${currentInvoiceId}', document.getElementById('invoicePaymentWallet').value); this.closest('.modal-overlay').remove();">✅ Lunas</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function confirmMarkInvoiceAsPaid(invoiceId, walletId) {
+    if (!walletId) {
+        alert('⚠️ Pilih dompet!');
+        return;
+    }
+    
+    const invoices = loadData(DB.invoices);
+    const inv = invoices.find(i => i.id === invoiceId);
+    const transactions = loadData(DB.transactions);
+    
+    if (!inv) return;
+    
+    // Hapus transaksi lama yang terkait invoice
+    const oldTransIds = inv.transactionIds || [];
+    const filteredTrans = transactions.filter(t => !oldTransIds.includes(t.id));
+    
+    // Buat transaksi baru untuk pelunasan
+    const now = Date.now();
+    const newTransIds = [];
+    
+    // DP masuk ke saldo bank
+    if (inv.dp > 0) {
+        const dpTrans = {
+            id: generateId(),
+            type: 'income',
+            date: inv.date,
+            category: 'DP Invoice',
+            description: `DP Invoice ${inv.number} - ${inv.customerName}`,
+            amount: inv.dp,
+            walletId: walletId,
+            invoiceId: inv.id,
+            createdAt: now
+        };
+        filteredTrans.push(dpTrans);
+        newTransIds.push(dpTrans.id);
+    }
+    
+    // Pelunasan masuk ke saldo bank
+    if (inv.remaining > 0) {
+        const pelunasanTrans = {
+            id: generateId(),
+            type: 'income',
+            date: new Date().toISOString().split('T'),
+            category: 'Pelunasan Invoice',
+            description: `Pelunasan Invoice ${inv.number} - ${inv.customerName}`,
+            amount: inv.remaining,
+            walletId: walletId,
+            invoiceId: inv.id,
+            createdAt: now + 1
+        };
+        filteredTrans.push(pelunasanTrans);
+        newTransIds.push(pelunasanTrans.id);
+    }
+    
+    // Update invoice
+    inv.status = 'Lunas';
+    inv.paidAt = new Date().toISOString().split('T');
+    inv.paidWalletId = walletId;
+    inv.transactionIds = newTransIds;
+    
+    saveData(DB.invoices, invoices);
+    saveData(DB.transactions, filteredTrans);
+    
+    addActivity(`✅ Invoice ${inv.number} ditandai lunas`);
+    recalculateAll();
+    renderAll();
+    
+    alert('✅ Invoice berhasil ditandai lunas!');
+    closeModal('invoiceDetailModal');
+}
+
+async function shareInvoiceAsImage() {
+    const printArea = document.getElementById('printArea');
+    if (!printArea) return;
+    
+    try {
+        const btn = event.target;
+        const orig = btn.textContent;
+        btn.textContent = '⏳ Membuat slip A4...';
+        btn.disabled = true;
+        
+        // Buat canvas dengan ukuran A4 (210mm x 297mm = 794px x 1123px @ 96dpi)
+        const canvas = await html2canvas(printArea, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            logging: false,
+            width: 794,
+            height: 1123
+        });
+        
+        btn.textContent = orig;
+        btn.disabled = false;
+        
+        canvas.toBlob(async (blob) => {
+            const inv = loadData(DB.invoices).find(i => i.id === currentInvoiceId);
+            const fileName = `${inv?.number || 'invoice'}-slip-A4.png`;
+            const file = new File([blob], fileName, { type: 'image/png' });
+            
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: `Invoice ${inv?.number}`,
+                        text: `Slip Invoice A4 ${loadData(DB.settings).businessName}`
+                    });
+                    return;
+                } catch (shareErr) {
+                    if (shareErr.name === 'AbortError') return;
+                }
+            }
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            alert('📸 Slip A4 berhasil diunduh!\nBuka galeri dan bagikan via WhatsApp atau media sosial.');
+        }, 'image/png');
+        
+    } catch (err) {
+        const btn = event.target;
+        btn.textContent = '📸 Slip A4 (Foto)';
+        btn.disabled = false;
+        alert('❌ Gagal membuat gambar: ' + err.message);
+    }
+}
+
+function sendWhatsAppInvoice() {
+    const inv = loadData(DB.invoices).find(i => i.id === currentInvoiceId);
+    if (!inv) return;
+    const settings = loadData(DB.settings);
+    
+    const typeLabel = { print: 'Percetakan Buku', laptop: 'Laptop Bekas', umum: 'Umum' };
+    
+    let text = `*${settings.businessName}*\n`;
+    text += `${settings.address}\n\n`;
+    text += `*Invoice: ${inv.number}*\n`;
+    text += `Tanggal: ${formatDate(inv.date)}\n`;
+    text += `Jenis: ${typeLabel[inv.type] || inv.type}\n\n`;
+    text += `*Pelanggan:*\n${inv.customerName}\n${inv.customerPhone||'-'}\n${inv.customerAddress||'-'}\n\n`;
+    
+    if (inv.type === 'print') {
+        text += `*Spesifikasi Buku:*\n`;
+        text += `Ukuran: ${inv.specs?.bookSize||'-'}\nJilid: ${inv.specs?.binding||'-'}\n`;
+        text += `Kertas Isi: ${inv.specs?.paperType||'-'}\nCover: ${inv.specs?.coverType||'-'}\n\n`;
+    } else if (inv.type === 'laptop') {
+        text += `*Spesifikasi Laptop:*\n`;
+        text += `${inv.specs?.laptopName||'-'}\n${inv.specs?.processor||'-'}\nRAM: ${inv.specs?.ram||'-'}\n`;
+        text += `Storage: ${inv.specs?.storage||'-'}\nKondisi: ${inv.specs?.condition||'-'}\n\n`;
+    } else if (inv.type === 'umum') {
+        text += `*Keterangan:*\n`;
+        text += `Jenis: ${inv.specs?.umumType||'-'}\n${inv.specs?.umumDesc||'-'}\n\n`;
+    }
+    
+    text += `*Daftar Item:*\n`;
+    inv.items?.forEach((item, i) => {
+        text += `${i+1}. ${item.name} x${item.qty} = ${formatRupiah(item.qty*item.price)}\n`;
+    });
+    text += `\n*Total: ${formatRupiah(inv.total)}*\n`;
+    text += `DP: ${formatRupiah(inv.dp)}\n`;
+    text += `Sisa: ${formatRupiah(inv.remaining)}\n`;
+    text += `Status: *${inv.status}*\n\n`;
+    text += `*Pembayaran:*\nSeaBank: 901007430064\nBSI: 7197202798\nDANA: ${settings.whatsapp}\n\n`;
+    if (inv.note) text += `Catatan: ${inv.note}\n\n`;
+    text += `Terima kasih! 🙏`;
+    
+    const phone = (inv.customerPhone||settings.whatsapp).replace(/\D/g, '').replace(/^0/, '62');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+}
+
+function editCurrentInvoice() {
+    closeModal('invoiceDetailModal');
+    const inv = loadData(DB.invoices).find(i => i.id === currentInvoiceId);
+    if (!inv) return;
+    
+    document.getElementById('invoiceId').value = inv.id;
+    document.getElementById('invoiceType').value = inv.type;
+    document.getElementById('invoiceModalTitle').textContent = 'Edit Invoice';
+    document.getElementById('invoiceCustomerName').value = inv.customerName;
+    document.getElementById('invoiceCustomerPhone').value = inv.customerPhone || '';
+    document.getElementById('invoiceCustomerAddress').value = inv.customerAddress || '';
+    document.getElementById('invoiceNote').value = inv.note || '';
+    document.getElementById('invoiceTotal').value = inv.total;
+    document.getElementById('invoiceDP').value = inv.dp;
+    document.getElementById('invoiceRemaining').value = inv.remaining;
+    document.getElementById('invoiceStatus').value = inv.status;
+    document.getElementById('invoiceWallet').value = inv.walletId || '';
+    
+    document.getElementById('printSpecs').style.display = inv.type === 'print' ? 'block' : 'none';
+    document.getElementById('laptopSpecs').style.display = inv.type === 'laptop' ? 'block' : 'none';
+    document.getElementById('umumSpecs').style.display = inv.type === 'umum' ? 'block' : 'none';
+    
+    if (inv.type === 'print') {
+        document.getElementById('printBookSize').value = inv.specs?.bookSize || '';
+        document.getElementById('printBinding').value = inv.specs?.binding || 'Lem Panas';
+        document.getElementById('printFinalSize').value = inv.specs?.finalSize || '';
+        document.getElementById('printPaperType').value = inv.specs?.paperType || '';
+        document.getElementById('printCoverType').value = inv.specs?.coverType || '';
+        document.getElementById('printLaminating').value = inv.specs?.laminating || 'Tidak';
+        document.getElementById('printWrapping').value = inv.specs?.wrapping || 'Tidak';
+    } else if (inv.type === 'laptop') {
+        document.getElementById('laptopName').value = inv.specs?.laptopName || '';
+        document.getElementById('laptopProcessor').value = inv.specs?.processor || '';
+        document.getElementById('laptopRam').value = inv.specs?.ram || '';
+        document.getElementById('laptopStorage').value = inv.specs?.storage || '';
+        document.getElementById('laptopScreen').value = inv.specs?.screen || '';
+        document.getElementById('laptopCondition').value = inv.specs?.condition || 'Like New';
+        document.getElementById('laptopWarranty').value = inv.specs?.warranty || '';
+    } else if (inv.type === 'umum') {
+        document.getElementById('umumType').value = inv.specs?.umumType || '';
+        document.getElementById('umumDesc').value = inv.specs?.umumDesc || '';
+    }
+    
+    invoiceItems = inv.items ? JSON.parse(JSON.stringify(inv.items)) : [];
+    renderInvoiceItems();
+    openModal('invoiceModal');
+}
+
+// ==================== INIT & EVENT LISTENERS ====================
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (checkCurrentUser()) {
+        init();
+    } else {
+        initGoogleSignIn();
+    }
+});
+
+window.addEventListener('beforeunload', () => {
+    syncToCloud(true);
+});
 
 // ==================== INIT & EVENT LISTENERS ====================
 
